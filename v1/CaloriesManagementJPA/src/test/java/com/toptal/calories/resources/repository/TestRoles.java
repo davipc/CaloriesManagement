@@ -10,19 +10,19 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.toptal.calories.resources.RepositoryException;
 import com.toptal.calories.resources.TestDBBase;
 import com.toptal.calories.resources.entity.Role;
-import com.toptal.calories.resources.repository.Roles;
 
 public class TestRoles extends TestDBBase {
 
-	public static Logger logger = Logger.getLogger(TestRoles.class);
+	public static Logger logger = LoggerFactory.getLogger(TestRoles.class);
 
 	protected static Roles model = new Roles();
 

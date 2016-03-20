@@ -8,15 +8,17 @@ import javax.persistence.PersistenceException;
 import javax.persistence.TemporalType;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.toptal.calories.resources.RepositoryException;
 import com.toptal.calories.resources.entity.Meal;
 
 
+
 public class Meals extends BaseCustomRepository<Meal> {
 	
-	public static Logger logger = Logger.getLogger(Meals.class);
+	public static Logger logger = LoggerFactory.getLogger(Meals.class);
 	
 	/**
 	 * Finds and returns all the Meals associated with the input user.

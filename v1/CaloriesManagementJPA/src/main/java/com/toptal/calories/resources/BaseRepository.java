@@ -12,12 +12,12 @@ import javax.persistence.Persistence;
 import javax.persistence.PersistenceException;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public abstract class BaseRepository<E extends BaseEntity> {
-	private static Logger logger = Logger.getLogger(BaseRepository.class.getName());
+	private static Logger logger = LoggerFactory.getLogger(BaseRepository.class.getName());
 
 	// Max time for DB operation to be performed. If an operation takes more than that, a WARN message will be sent to the log file.
 	public static int MAX_TIME_DB_OPER_MS = 200;
@@ -85,20 +85,20 @@ public abstract class BaseRepository<E extends BaseEntity> {
 	 * @param startTime The time the method started being executed
 	 * @param standardLevel The level to use in case the method didn't take too long to execute. 
 	 */
-	protected void logEnd(String action, long startTime, Level standardLevel) {
+	protected void logEnd(String action, long startTime) {
 		long endTime = System.currentTimeMillis();
 		String msg = " finished " + action + " after " + (System.currentTimeMillis() - startTime) + " ms";
 		
 		if (endTime - startTime > MAX_TIME_DB_OPER_MS) {
 			logger.warn(msg);
 		} else {
-			logger.log(standardLevel, msg);
+			logger.info(msg);
 		}
 		
 	}
 
 	/**
-	 * Returns a consistent "time-elapsed" message sufix. 
+	 * Returns a consistent "time-elapsed" message suffix. 
 	 * NOT A STATIC METHOD, TO AVOID SYNCHRONIZATION ISSUES AND MAINTAIN PERFORMANCE.
 	 * 
 	 * @param startTime
@@ -116,7 +116,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 		logger.debug(" creating entity manager ");
 		long startTime = System.currentTimeMillis();
 		EntityManager em = getEntityManagerFactory().createEntityManager();
-		logEnd("creating entity manager", startTime, Level.DEBUG);
+		logEnd("creating entity manager", startTime);
 		return em;
 	}
 
@@ -148,7 +148,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 						em.close();
 					}
 				}
-				logEnd("creating " + entity, startTime, Level.INFO);
+				logEnd("creating " + entity, startTime);
 				return createdOrUpdated;				
 			}
 		} catch (RepositoryException e) {
@@ -210,7 +210,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 						em.close();
 					}
 				}
-				logEnd(" creating or updating batch containing " + (entities == null || entities.size() == 0 ? "0" : entities.size()) + " entities", startTime, Level.INFO);
+				logEnd(" creating or updating batch containing " + (entities == null || entities.size() == 0 ? "0" : entities.size()) + " entities", startTime);
 				return createdOrUpdatedList;				
 			}
 		} catch (RepositoryException e) {
@@ -252,7 +252,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 					}
 				}
 			}
-			logEnd(" finding " + className + " with ID \"" + id + "\"", startTime, Level.INFO);
+			logEnd(" finding " + className + " with ID \"" + id + "\"", startTime);
 			return entity;
 		} catch (RepositoryException e) {
 			logger.error(e.getMessage() + getWrapupMsg(startTime) + "; rootCause: " + ExceptionUtils.getRootCauseMessage(e));
@@ -322,7 +322,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 				em.close();
 			}
 		}
-		logEnd(" finding all " + className + "s", startTime, Level.INFO);
+		logEnd(" finding all " + className + "s", startTime);
 		
 		return entities;
 	}
@@ -365,7 +365,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 						em.close();
 					}
 				}
-				logEnd(" deleting all " + className + "s: " + deletedEntries + " entries deleted", startTime, Level.INFO);
+				logEnd(" deleting all " + className + "s: " + deletedEntries + " entries deleted", startTime);
 				return deletedEntries;
 		} catch (RepositoryException e) {
 			logger.error(e.getMessage() + getWrapupMsg(startTime) + "; rootCause: " + ExceptionUtils.getRootCauseMessage(e));
@@ -421,7 +421,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 						em.close();
 					}
 				}
-				logEnd(" removing " + className + " with ID \"" + id + "\"", startTime, Level.INFO);
+				logEnd(" removing " + className + " with ID \"" + id + "\"", startTime);
 			}
 		} catch (RepositoryException e) {
 			logger.error(e.getMessage() + getWrapupMsg(startTime) + "; rootCause: " + ExceptionUtils.getRootCauseMessage(e));
