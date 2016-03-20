@@ -6,8 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.sql.Time;
-import java.sql.Timestamp;
+import java.security.InvalidParameterException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -40,8 +39,12 @@ public class TestMeals extends TestDBBase {
 	private static String thirdLogin = "3_" + login.substring(2);
 	private static User thirdTestUser;
 	
-	Timestamp mealTime1 = new Timestamp(System.currentTimeMillis()-100);
-	Timestamp mealTime2 = new Timestamp(System.currentTimeMillis());
+	SimpleDateFormat dateOnly = new SimpleDateFormat("yyyy-MM-dd");
+	Date mealDate1;
+	Date mealTime1;
+
+	Date mealDate2;
+	Date mealTime2;
 
 	private static int invalidId = -1;
 
@@ -65,6 +68,12 @@ public class TestMeals extends TestDBBase {
 
 	@Before
 	public void setUp() throws Exception {
+		SimpleDateFormat dateOnly = new SimpleDateFormat("yyyy-MM-dd");
+		mealDate1 = dateOnly.parse(dateOnly.format(new Date()));
+		mealTime1 = getTime(0, 0);
+
+		mealDate2 = dateOnly.parse(dateOnly.format(new Date()));
+		mealTime2 = getTime(23, 59);
 	}
 
 	@After
@@ -86,11 +95,12 @@ public class TestMeals extends TestDBBase {
 	/**  		            Helper Methods                                       **/											
 	/******************************************************************************/
 
-	public static Meal getMeal(User user, Timestamp timestamp) {
+	public static Meal getMeal(User user, Date date, Date time) {
 		
 		Meal meal = new Meal();
 		meal.setUserId(user.getId());
-		meal.setMealTime(timestamp);
+		meal.setMealDate(date);
+		meal.setMealTime(time);
 		meal.setDescription("Test description");
 		meal.setCalories(500);
 
@@ -131,7 +141,7 @@ public class TestMeals extends TestDBBase {
 	@Test
 	public void testSuccessEnd2End() {
 		logger.debug("Running " + getCurrentMethodName());
-		Meal testMeal = getMeal(testUser, mealTime1);
+		Meal testMeal = getMeal(testUser, mealDate1, mealTime1);
 		boolean removed = false;
 		try {
 			testMeal = model.createOrUpdate(testMeal);
@@ -174,16 +184,16 @@ public class TestMeals extends TestDBBase {
 		Meal fourthMeal = null;
 		try {
 			// create test Meal
-			testMeal = getMeal(testUser, mealTime1);
+			testMeal = getMeal(testUser, mealDate1, mealTime1);
 			testMeal = model.createOrUpdate(testMeal);
 			// create a second Meal
-			secondMeal = getMeal(testUser, mealTime2);
+			secondMeal = getMeal(testUser, mealDate2, mealTime2);
 			secondMeal = model.createOrUpdate(secondMeal);
 			// create a third Meal
-			thirdMeal = getMeal(otherTestUser, mealTime1);
+			thirdMeal = getMeal(otherTestUser, mealDate1, mealTime1);
 			thirdMeal = model.createOrUpdate(thirdMeal);
 			// create a fourth Meal
-			fourthMeal = getMeal(otherTestUser, mealTime2);
+			fourthMeal = getMeal(otherTestUser, mealDate2, mealTime2);
 			fourthMeal = model.createOrUpdate(fourthMeal);
 			
 			List<Meal> meals = model.findAll();
@@ -239,7 +249,7 @@ public class TestMeals extends TestDBBase {
 	public void testCreateMealNullUserId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			Meal meal = getMeal(testUser, mealTime1);
+			Meal meal = getMeal(testUser, mealDate1, mealTime1);
 			meal.setUserId(null);
 			model.createOrUpdate(meal);
 			fail("Null User ID should have caused a ModelException!");
@@ -258,7 +268,7 @@ public class TestMeals extends TestDBBase {
 	public void testCreateMealNullCalories() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			Meal meal = getMeal(testUser, mealTime1);
+			Meal meal = getMeal(testUser, mealDate1, mealTime1);
 			meal.setCalories(null);
 			model.createOrUpdate(meal);
 			fail("Null Meal Calories should have caused a ModelException!");
@@ -277,7 +287,7 @@ public class TestMeals extends TestDBBase {
 	public void testCreateMealNullDescription() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			Meal meal = getMeal(testUser, mealTime1);
+			Meal meal = getMeal(testUser, mealDate1, mealTime1);
 			meal.setDescription(null);
 			model.createOrUpdate(meal);
 			fail("Null Meal Description should have caused a ModelException!");
@@ -334,7 +344,7 @@ public class TestMeals extends TestDBBase {
 	@Test
 	public void testUpdateMealNullMealDescription() {
 		logger.debug("Running " + getCurrentMethodName());
-		Meal meal = getMeal(testUser, mealTime1);
+		Meal meal = getMeal(testUser, mealDate1, mealTime1);
 		try {
 			// create Meal for updating
 			meal = model.createOrUpdate(meal);
@@ -360,7 +370,7 @@ public class TestMeals extends TestDBBase {
 	@Test
 	public void testUpdateMealNullMealCalories() {
 		logger.debug("Running " + getCurrentMethodName());
-		Meal meal = getMeal(testUser, mealTime1);
+		Meal meal = getMeal(testUser, mealDate1, mealTime1);
 		try {
 			// create Meal for updating
 			meal = model.createOrUpdate(meal);
@@ -442,16 +452,16 @@ public class TestMeals extends TestDBBase {
 		Meal fourthMeal = null;
 		try {
 			// create test Meal
-			testMeal = getMeal(testUser, mealTime1);
+			testMeal = getMeal(testUser, mealDate1, mealTime1);
 			testMeal = model.createOrUpdate(testMeal);
 			// create a second Meal
-			secondMeal = getMeal(testUser, mealTime2);
+			secondMeal = getMeal(testUser, mealDate2, mealTime2);
 			secondMeal = model.createOrUpdate(secondMeal);
 			// create a third Meal
-			thirdMeal = getMeal(otherTestUser, mealTime1);
+			thirdMeal = getMeal(otherTestUser, mealDate1, mealTime1);
 			thirdMeal = model.createOrUpdate(thirdMeal);
 			// create a fourth Meal
-			fourthMeal = getMeal(otherTestUser, mealTime2);
+			fourthMeal = getMeal(otherTestUser, mealDate2, mealTime2);
 			fourthMeal = model.createOrUpdate(fourthMeal);
 			
 			List<Meal> meals = model.findUserMeals(invalidId);
@@ -491,16 +501,16 @@ public class TestMeals extends TestDBBase {
 		Meal fourthMeal = null;
 		try {
 			// create test Meal
-			testMeal = getMeal(testUser, mealTime1);
+			testMeal = getMeal(testUser, mealDate1, mealTime1);
 			testMeal = model.createOrUpdate(testMeal);
 			// create a second Meal
-			secondMeal = getMeal(testUser, mealTime2);
+			secondMeal = getMeal(testUser, mealDate2, mealTime2);
 			secondMeal = model.createOrUpdate(secondMeal);
 			// create a third Meal
-			thirdMeal = getMeal(otherTestUser, mealTime1);
+			thirdMeal = getMeal(otherTestUser, mealDate1, mealTime1);
 			thirdMeal = model.createOrUpdate(thirdMeal);
 			// create a fourth Meal
-			fourthMeal = getMeal(otherTestUser, mealTime2);
+			fourthMeal = getMeal(otherTestUser, mealDate2, mealTime2);
 			fourthMeal = model.createOrUpdate(fourthMeal);
 			
 			List<Meal> meals = model.findUserMeals(invalidId);
@@ -541,13 +551,13 @@ public class TestMeals extends TestDBBase {
 		Meal fourthMeal = null;
 		try {
 			// create test Meal
-			testMeal = getMeal(testUser, mealTime1);
+			testMeal = getMeal(testUser, mealDate1, mealTime1);
 			testMeal = model.createOrUpdate(testMeal);
 			// create a second Meal
-			secondMeal = getMeal(testUser, mealTime2);
+			secondMeal = getMeal(testUser, mealDate2, mealTime2);
 			secondMeal = model.createOrUpdate(secondMeal);
 			// create a third Meal
-			thirdMeal = getMeal(otherTestUser, mealTime1);
+			thirdMeal = getMeal(otherTestUser, mealDate1, mealTime1);
 			thirdMeal = model.createOrUpdate(thirdMeal);
 			
 			List<Meal> meals = model.findUserMeals(otherTestUser.getId());
@@ -588,16 +598,16 @@ public class TestMeals extends TestDBBase {
 		Meal fourthMeal = null;
 		try {
 			// create test Meal
-			testMeal = getMeal(testUser, mealTime1);
+			testMeal = getMeal(testUser, mealDate1, mealTime1);
 			testMeal = model.createOrUpdate(testMeal);
 			// create a second Meal
-			secondMeal = getMeal(testUser, mealTime2);
+			secondMeal = getMeal(testUser, mealDate2, mealTime2);
 			secondMeal = model.createOrUpdate(secondMeal);
 			// create a third Meal
-			thirdMeal = getMeal(otherTestUser, mealTime1);
+			thirdMeal = getMeal(otherTestUser, mealDate1, mealTime1);
 			thirdMeal = model.createOrUpdate(thirdMeal);
 			// create a fourth Meal
-			fourthMeal = getMeal(otherTestUser, mealTime2);
+			fourthMeal = getMeal(otherTestUser, mealDate2, mealTime2);
 			fourthMeal = model.createOrUpdate(fourthMeal);
 			
 			List<Meal> meals = model.findUserMeals(testUser.getId());
@@ -653,7 +663,8 @@ public class TestMeals extends TestDBBase {
 				for (int i = numDays; i >= 0; i--) {
 					for (int j = 0; j < mealTimeHours.length; j++) {
 						mealTime = getDateDaysAgoAtTime(i, mealTimeHours[j], mealTimeMinutes[j]);
-						meal = getMeal(user, new Timestamp(mealTime.getTime()));
+						
+						meal = getMeal(user, mealTime, mealTime);
 						meal = createMeal(meal);
 						dateTimeRangesTestMeals.add(meal);
 					}
@@ -697,20 +708,23 @@ public class TestMeals extends TestDBBase {
 		return cal.getTime();
 	}
 	
-	private Time getTime(int hours, int minutes) 
-	throws Exception {
+	private Date getTime(int hours, int minutes) 
+	throws InvalidParameterException {
 		if (hours < 0 || hours > 23)
-			throw new Exception("Invalid hour: " + hours);
+			throw new InvalidParameterException("Invalid hour: " + hours);
 		if (minutes < 0 || minutes > 59)
-			throw new Exception("Invalid minute: " + minutes);
+			throw new InvalidParameterException("Invalid minute: " + minutes);
 		
 		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.DATE, 1);
+		cal.set(Calendar.MONTH, 0);
+		cal.set(Calendar.YEAR, 1970);
 		cal.set(Calendar.HOUR_OF_DAY, hours);
 		cal.set(Calendar.MINUTE, minutes);
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 		
-		return new Time(cal.getTimeInMillis());
+		return cal.getTime();
 	}
 	
 	/******************************************************************************/
@@ -826,13 +840,13 @@ public class TestMeals extends TestDBBase {
 		Meal fourthMeal = null;
 		try {
 			// create test Meal
-			testMeal = getMeal(testUser, mealTime1);
+			testMeal = getMeal(testUser, mealDate1, mealTime1);
 			testMeal = model.createOrUpdate(testMeal);
 			// create a second Meal
-			secondMeal = getMeal(testUser, mealTime2);
+			secondMeal = getMeal(testUser, mealDate2, mealTime2);
 			secondMeal = model.createOrUpdate(secondMeal);
 			// create a third Meal
-			thirdMeal = getMeal(otherTestUser, mealTime1);
+			thirdMeal = getMeal(otherTestUser, mealDate1, mealTime1);
 			thirdMeal = model.createOrUpdate(thirdMeal);
 			
 			List<Meal> meals = model.findUserMealsInDateAndTimeRanges(invalidId, new Date(0), new Date(), getTime(0,0), getTime(23,59));

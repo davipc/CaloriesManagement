@@ -1,6 +1,6 @@
 package com.toptal.calories.resources.entity;
 
-import java.sql.Timestamp;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +12,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
 import com.toptal.calories.resources.BaseEntity;
@@ -36,19 +38,16 @@ import com.toptal.calories.resources.BaseEntity;
  */
 @Entity
 @Table(
-		uniqueConstraints={@UniqueConstraint(name = "Meal_UNIQ", columnNames = {"user_id" , "meal_time"})},
-		indexes = {@Index(name="Meal_IDX", columnList="user_id, meal_time")
+		uniqueConstraints={@UniqueConstraint(name = "Meal_UNIQ", columnNames = {"user_id" , "meal_date", "meal_time"})},
+		indexes = {@Index(name="Meal_IDX", columnList="user_id, meal_date, meal_time")
 })
 @NamedQueries ({
 	@NamedQuery(name="Meal.findAll", query="SELECT m FROM Meal m"),
 	@NamedQuery(name="Meal.findByUserId", query="SELECT m FROM Meal m where m.userId = :userId"),
-	// JPQL doesn't have a method to break a date in date and time parts (would be ideal for checking date AND time ranges simultaneously)
-	// we need to use HQL functions due to that
 	@NamedQuery(name="Meal.findInDateAndTimeRange", 
 			query="SELECT m FROM Meal m "
-					+ "where m.userId = :userId and m.mealTime >= :startDate and m.mealTime <= :endDate "
-					+ "and (HOUR(m.mealTime)*60 + MINUTE(m.mealTime)) between :startTimeMinutes and :endTimeMinutes")
-	//@NamedQuery(name="Meal.testDateFuncs", query="SELECT m FROM Meal m where (HOUR(m.mealTime)*60 + MINUTE(m.mealTime)) between :startTimeMinutes and :endTimeMinutes")
+					+ "where m.userId = :userId and m.mealDate between :startDate and :endDate "
+					+ "and m.mealTime between :startTime and :endTime")
 })
 
 public class Meal extends BaseEntity {
@@ -63,8 +62,13 @@ public class Meal extends BaseEntity {
 	@Column(name="user_id", nullable=false)
 	private Integer userId;
 
+	@Column(name="meal_date", nullable=false)
+	@Temporal(TemporalType.DATE)
+	private Date mealDate;
+	
 	@Column(name="meal_time", nullable=false)
-	private Timestamp mealTime;
+	@Temporal(TemporalType.TIME)
+	private Date mealTime;
 
 	@Column(nullable=false)
 	private String description;
@@ -99,11 +103,19 @@ public class Meal extends BaseEntity {
 		this.description = description;
 	}
 
-	public Timestamp getMealTime() {
+	public Date getMealDate() {
+		return this.mealDate;
+	}
+
+	public void setMealDate(Date mealDate) {
+		this.mealDate = mealDate;
+	}
+
+	public Date getMealTime() {
 		return this.mealTime;
 	}
 
-	public void setMealTime(Timestamp mealTime) {
+	public void setMealTime(Date mealTime) {
 		this.mealTime = mealTime;
 	}
 
@@ -121,8 +133,12 @@ public class Meal extends BaseEntity {
 		
 		if (obj != null && obj instanceof Meal) {
 			Meal other = (Meal) obj;
+
+			//System.out.println("Comparing " + mealDate + " to " + new Date(other.getMealDate().getTime()));
+			//System.out.println("Comparing " + mealTime + " to " + new Date(other.getMealTime().getTime()));
 			result = areEqual(other.getId(), getId()) &&
 					areEqual(other.getUserId(), getUserId()) &&
+					areEqual(other.getMealDate(), getMealDate()) &&
 					areEqual(other.getMealTime(), getMealTime()) &&
 					areEqual(other.getDescription(), getDescription()) &&
 					areEqual(other.getCalories(), getCalories());
@@ -134,6 +150,7 @@ public class Meal extends BaseEntity {
 	public String toString() {
 		StringBuilder sb = new StringBuilder().append("Meal [Id: ").append(id)
 			.append(", userId: ").append(userId)
+			.append(", mealDate: ").append(mealDate)
 			.append(", mealTime: ").append(mealTime)
 			.append(", description: ").append(description)
 			.append(", calories: ").append(calories);
