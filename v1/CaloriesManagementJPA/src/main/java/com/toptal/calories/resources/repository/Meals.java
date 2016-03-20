@@ -1,7 +1,5 @@
 package com.toptal.calories.resources.repository;
 
-import java.sql.Time;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -63,24 +61,18 @@ public class Meals extends BaseCustomRepository<Meal> {
 	 * Finds and returns all the Meals associated with the input user
 	 * that happened between input from and to dates and between from and to hours.
 	 * @param userId The meal's user Id.
-	 * @param fromDate
-	 * @param toDate
-	 * @param startHour
-	 * @param startMinute
-	 * @param endHour
-	 * @param endMinute
+	 * @param fromDate (time portion will be ignored)
+	 * @param toDate (time portion will be ignored)
+	 * @param fromTime (date portion will be ignored)
+	 * @param toTime (date portion will be ignored)
 	 * @return The Meal objects associated with the input userId and within both date and time ranges. 
-	 * If no Meal object is found, an empty list is returned.
+	 * If no Meal objects are found, an empty list is returned.
 	 */
 	@SuppressWarnings("unchecked")
-	public List<Meal> findUserMealsInDateAndTimeRanges(Integer userId, Date fromDate, Date toDate, Time fromTime, Time toTime) 
+	public List<Meal> findUserMealsInDateAndTimeRanges(Integer userId, Date fromDate, Date toDate, Date fromTime, Date toTime) 
 	throws RepositoryException {
 		long startTime = System.currentTimeMillis();
 
-		// make sure dates have the time fields correct
-		fromDate = setTimeInfo(fromDate, 0, 0, 0);
-		toDate = setTimeInfo(toDate, 23, 59, 59);
-		
 		String formattedInputParameters = String.format("from user %s from %tF to %tF and from %tR to %tR ", userId, fromDate, toDate, fromTime, toTime);
 		logger.info("Finding meals " + formattedInputParameters);
 
@@ -88,19 +80,16 @@ public class Meals extends BaseCustomRepository<Meal> {
 			validateFindUserMealsInDateAndTimeRangesParms(userId, fromDate, toDate, fromTime, toTime);
 			
 			
-			int startMinutes = getMinuteOfDay(fromTime);
-			int endMinutes = getMinuteOfDay(toTime);
-
 			List<Meal> meals = null;
 			EntityManager em = null; 
 			try {
 				em = getEntityManager();
 				meals = em.createNamedQuery("Meal.findInDateAndTimeRange")
 							.setParameter("userId", userId)
-							.setParameter("startDate", fromDate, TemporalType.TIMESTAMP)
-							.setParameter("endDate", toDate, TemporalType.TIMESTAMP)
-							.setParameter("startTimeMinutes", startMinutes)
-							.setParameter("endTimeMinutes", endMinutes)
+							.setParameter("startDate", fromDate, TemporalType.DATE)
+							.setParameter("endDate", toDate, TemporalType.DATE)
+							.setParameter("startTime", fromTime, TemporalType.TIME)
+							.setParameter("endTime", toTime, TemporalType.TIME)
 							.getResultList();
 						
 			} catch (PersistenceException pe) {
@@ -121,37 +110,7 @@ public class Meals extends BaseCustomRepository<Meal> {
 		
 	}
 
-	/** 
-	 * Returns the number of minutes elapsed in the day in the input Time.
-	 * @param time
-	 * @return The number of minutes elapsed in the day in the input Time.
-	 */
-	private int getMinuteOfDay(Time time) {
-		int result = 0;
-		
-		Calendar cal = Calendar.getInstance();
-		cal.setTime(time);
-		result = 60 * cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE);
-		
-		return result;
-	}
-	
-	private Date setTimeInfo(Date date, int hour, int minute, int second) {
-		Date result = null;
-		if (date != null) {
-			Calendar cal = Calendar.getInstance();
-			cal.setTime(date);
-			cal.set(Calendar.HOUR_OF_DAY, hour);
-			cal.set(Calendar.MINUTE, minute);
-			cal.set(Calendar.SECOND, second);
-			cal.set(Calendar.MILLISECOND, 0);
-			
-			result = cal.getTime();
-		}		
-		return result;
-	}
-
-	private void validateFindUserMealsInDateAndTimeRangesParms(Integer userId, Date fromDate, Date toDate, Time fromTime, Time toTime) 
+	private void validateFindUserMealsInDateAndTimeRangesParms(Integer userId, Date fromDate, Date toDate, Date fromTime, Date toTime) 
 	throws RepositoryException {
 		if (userId == null) {
 			throw new RepositoryException("Null user Id provided");
