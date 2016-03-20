@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd"> -->
+<!DOCTYPE log4j:configuration SYSTEM "http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd">
+
+	<!--
+		=====================================================================
+	-->
+	<!--
+	-->
+	<!--
+		Log4j Configuration
+	-->
+	<!--
+	-->
+	<!--
+		=====================================================================
+	-->
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/"
+	debug="false">
+
+	<!-- ============================== -->
+	<!-- Append messages to the console -->
+	<!-- ============================== -->
+	<appender name="JPA-CONSOLE" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="%d{dd MMM yyyy HH:mm:ss:SSS} %-5p [%t] %C{2} (%F:%L) - %n%m%n" />
+		</layout>
+	</appender>
+
+	<appender name="JPA-TOPTAL-FILE" class="org.apache.log4j.RollingFileAppender">
+		<!-- <param name="Threshold" value="INFO" /> -->
+		<param name="File"
+			value="hibernate.log" />
+		<param name="Append" value="true" />
+		<param name="MaxFileSize" value="6000KB" />
+		<param name="MaxBackupIndex" value="9" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="%d{dd MMM yyyy HH:mm:ss:SSS} %-5p [%t] %C{2} (%F:%L) - %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="JPA-TOPTAL-FILE-SEVERE" class="org.apache.log4j.RollingFileAppender">
+		<param name="Threshold" value="ERROR" />
+		<param name="File"
+			value="hibernate-severe.log" />
+		<param name="Append" value="true" />
+		<param name="MaxFileSize" value="6000KB" />
+		<param name="MaxBackupIndex" value="9" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="%d{dd MMM yyyy HH:mm:ss:SSS} %-5p [%t] %C{2} (%F:%L) - %m%n" />
+		</layout>
+	</appender>
+
+	<category name="com.toptal.calories.resources">
+		<priority value="debug" />
+		<!-- <appender-ref ref="JPA-CONSOLE" /> -->
+		<appender-ref ref="JPA-TOPTAL-FILE" />
+		<appender-ref ref="JPA-TOPTAL-FILE-SEVERE" />
+	</category>
+
+	<category name="test">
+		<priority value="debug" />
+		<appender-ref ref="JPA-CONSOLE" />
+	</category>
+
+	<root>
+		<priority value="error" />
+		<!-- UNCOMMENT TO SEE JDBC ERROR ADAPTER MESSAGES -->
+		<!--
+		<appender-ref ref="JPA-CONSOLE"/> 
+		-->
+	</root>
+</log4j:configuration>

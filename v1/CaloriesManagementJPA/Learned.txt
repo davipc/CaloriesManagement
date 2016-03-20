@@ -1,0 +1,4 @@
+- maven (from ant)
+- JPA -> generate tables from entity
+- Hibernate JPA provider (from EJB3 provider)
+- Repository pattern
