@@ -15,7 +15,7 @@ public class LogUtil {
 	 */
 	public static void logEnd(Logger logger, String action, long startTime) {
 		long endTime = System.currentTimeMillis();
-		String msg = " finished " + action + " after " + (System.currentTimeMillis() - startTime) + " ms";
+		String msg = "Finished " + action + " after " + (System.currentTimeMillis() - startTime) + " ms";
 		
 		if (endTime - startTime > MAX_TIME_DB_OPER_MS) {
 			logger.warn(msg);

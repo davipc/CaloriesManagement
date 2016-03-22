@@ -1,5 +1,6 @@
 package com.toptal.calories.rest;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -10,6 +11,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -17,10 +19,12 @@ import javax.ws.rs.core.Response.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.toptal.calories.resources.entity.Meal;
 import com.toptal.calories.resources.entity.User;
 import com.toptal.calories.resources.repository.RepositoryException;
 import com.toptal.calories.resources.repository.RepositoryFactory;
 import com.toptal.calories.resources.repository.Users;
+import com.toptal.calories.rest.util.RestUtil;
 
 @Path("/users")
 public class UserService {
@@ -105,6 +109,78 @@ public class UserService {
 		
 		logger.debug("Finished deleting user with ID " + userId);
 	}
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("{userId}/meals")
+	public List<Meal> getMealsFromUser(@PathParam("userId") int userId, 
+										@QueryParam("fromDate") String fromDate, @QueryParam("toDate") String  toDate, 
+										@QueryParam("fromTime") String fromTime, @QueryParam("toTime") String toTime) 
+	throws RepositoryException {
+		
+		List<Meal> mealsFromUser = null;
+		
+		// if no query parameters provided, just get all the user's meals 
+		if (fromDate == null && toDate == null && fromTime == null && toTime == null) {
+			mealsFromUser = getMealsFromUser(userId);	
+		} 
+		// otherwise, use the fields to perform a narrower query (more efficient on the DB than fetching all meals from user then filtering here)
+		else {
+			Date fromD = RestUtil.getDateFromJSON(fromDate, RestUtil.DEFAULT_DATE_MIN);
+			Date toD = RestUtil.getDateFromJSON(toDate, RestUtil.DEFAULT_DATE_MAX);
+			Date fromT = RestUtil.getTimeFromJSON(fromTime, RestUtil.DEFAULT_TIME_MIN);
+			Date toT = RestUtil.getTimeFromJSON(toTime, RestUtil.DEFAULT_TIME_MAX);
+			
+			mealsFromUser = getMealsFromUser(userId, fromD, toD, fromT, toT);
+		}
+		
+		return mealsFromUser;
+	}
+	
+	private List<Meal> getMealsFromUser(int userId) throws RepositoryException {
+		logger.debug("Looking for meals from user " + userId); 
+		
+		User user = users.find(userId);
+		
+		if (user == null) {
+			logger.debug("No users found for user with ID " + userId);
+	        throw new WebApplicationException(Status.NOT_FOUND);
+	    }
+
+		logger.debug("User found for ID " + userId);
+		
+		List<Meal> mealsFromUser = user.getMeals();
+		if (mealsFromUser == null) {
+			logger.debug("No meals found for user with ID " + userId);
+	        throw new WebApplicationException(Status.NOT_FOUND);
+	    }
+
+		logger.debug("Meals found for user with ID " + userId + ": "  + mealsFromUser.size());
+		return mealsFromUser;
+	}
+	
+	private List<Meal> getMealsFromUser(int userId, Date fromDate, Date toDate, Date fromTime, Date toTime) 
+	throws RepositoryException {
+		String formattedString = String.format(" from user %s and in date range %tF to %tF and time range %tR to %tR", userId, fromDate, toDate, fromTime, toTime);
+
+		logger.debug("Looking for meals " + formattedString); 
+		
+		List<Meal> mealsFromUser = users.findMealsInDateAndTimeRanges(userId, fromDate, toDate, fromTime, toTime);
+		
+		if (mealsFromUser == null) {
+			logger.debug("No meals found " + formattedString);
+	        throw new WebApplicationException(Status.NOT_FOUND);
+	    }
+
+		logger.debug("Meals found " + formattedString + ": "  + mealsFromUser.size());
+
+		return mealsFromUser;
+	}
+
+	
+	
+	
+	
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)

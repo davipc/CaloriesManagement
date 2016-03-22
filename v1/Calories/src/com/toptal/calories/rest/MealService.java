@@ -1,8 +1,5 @@
 package com.toptal.calories.rest;
 
-import java.util.Date;
-import java.util.List;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -96,47 +93,4 @@ public class MealService {
 		
 		logger.debug("Finished deleting meal with ID " + mealId + ": " + (removed ? "successfully deleted": "did not exist"));
 	}
-	
-	// TODO: optional: JPA could be changed so users include meals and this is a user related api 
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("user/{userId}")
-	public List<Meal> getMealsFromUser(@PathParam("userId") int userId) throws RepositoryException {
-		logger.debug("Looking for meals from user " + userId); 
-		
-		List<Meal> mealsFromUser = meals.findUserMeals(userId);
-		
-		if (mealsFromUser == null) {
-			logger.debug("No meals found for user with ID " + userId);
-	        throw new WebApplicationException(Status.NOT_FOUND);
-	    }
-
-		logger.debug("Meals found for user with ID " + userId + ": "  + mealsFromUser.size());
-		return mealsFromUser;
-	}
-	
-
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("user/{userId}/{fromDate}/{toDate}/{fromTime}/{toTime}")
-	public List<Meal> getMealsFromUser(@PathParam("userId") int userId, 
-										@PathParam("fromDate") Date fromDate, @PathParam("toDate") Date toDate, 
-										@PathParam("fromTime") Date fromTime, @PathParam("toTime") Date toTime) 
-	throws RepositoryException {
-		String formattedString = String.format(" from user %s and in date range %tF to %tF and time range %tR to %tR", userId, fromDate, toDate, fromTime, toTime);
-		
-		logger.debug("Looking for meals " + formattedString); 
-		
-		List<Meal> mealsFromUser = meals.findUserMealsInDateAndTimeRanges(userId, fromDate, toDate, fromTime, toTime);
-		
-		if (mealsFromUser == null) {
-			logger.debug("No meals found " + formattedString);
-	        throw new WebApplicationException(Status.NOT_FOUND);
-	    }
-
-		logger.debug("Meals found " + formattedString + ": "  + mealsFromUser.size());
-		return mealsFromUser;
-	}
-	
-	
 }

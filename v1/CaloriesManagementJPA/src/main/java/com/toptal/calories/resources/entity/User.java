@@ -3,6 +3,7 @@ package com.toptal.calories.resources.entity;
 import java.sql.Timestamp;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -15,20 +16,36 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 
 
 /**
  * The persistent class for the app_user database table.
  * 
  */
+
+@XmlRootElement(name = "user")
+@XmlType(propOrder = {"id", "login", "password", "name", "gender", "dailyCalories", "roles", "creationDt"})
+@XmlAccessorType(XmlAccessType.FIELD)
+
 @Entity
 @Table(name="app_user")
-@NamedQuery(name="User.findAll", query="SELECT u FROM User u")
+@NamedQueries ({
+	@NamedQuery(name="User.findAll", query="SELECT u FROM User u"),
+	@NamedQuery(name="User.findMealsInDateAndTimeRange", 
+			query="SELECT m FROM User u JOIN u.meals m where m.user.id = :userId and m.mealDate between :startDate and :endDate and m.mealTime between :startTime and :endTime")
+})
+
 public class User extends BaseEntity {
-	//private static final long serialVersionUID = 1L;
 
 	@Id
 	@SequenceGenerator(name="app_user_id_seq", sequenceName="app_user_id_seq", allocationSize=1)
@@ -36,26 +53,23 @@ public class User extends BaseEntity {
 	@Column(name = "id", updatable=false, nullable=false)	
 	private Integer id;
 
-	@Column(name="creation_dt", nullable=false)
-	private Timestamp creationDt;
-
-	@Column(name="daily_calories", nullable=false)
-	private Integer dailyCalories;
-
 	@Column(nullable=false)
 	private String login;
 
 	@Column(nullable=false)
-	private String name;
+	private String password;
 
 	@Column(nullable=false)
-	private String password;
+	private String name;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable=false)
 	private Gender gender;
 
-	//bi-directional many-to-many association to Role
+	@Column(name="daily_calories", nullable=false)
+	private Integer dailyCalories;
+
+	//one-directional many-to-many association to Role
 	@ManyToMany(fetch=FetchType.EAGER)
 	@JoinTable(name="user_role" , 
 		foreignKey=@ForeignKey(name="user_id_FK"),
@@ -65,6 +79,15 @@ public class User extends BaseEntity {
 	)
 	private List<Role> roles;
 
+	// makes sure this is not present in the generated JSON
+	@XmlTransient
+	@OneToMany(fetch=FetchType.LAZY, cascade = CascadeType.ALL, mappedBy="user")
+	private List<Meal> meals;
+	
+	@Column(name="creation_dt", nullable=false)
+	private Timestamp creationDt;
+
+	
 	public User() {
 	}
 
@@ -132,6 +155,14 @@ public class User extends BaseEntity {
 		this.roles = roles;
 	}
 	
+	public List<Meal> getMeals() {
+		return meals;
+	}
+
+	public void setMeals(List<Meal> meals) {
+		this.meals = meals;
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		boolean result = false;

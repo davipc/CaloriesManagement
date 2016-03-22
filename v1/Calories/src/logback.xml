@@ -39,7 +39,7 @@
 	</logger>
 
 	<logger name="com.toptal.calories.rest" level="DEBUG" >
-		<appender-ref ref="STDOUT" />
+		<!-- <appender-ref ref="STDOUT" /> -->
 	</logger>
 
 	<root level="DEBUG">

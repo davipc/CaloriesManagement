@@ -2,7 +2,7 @@ TESTS MEAL:
 
 GET (id)
 
-http://localhost:8080/CaloriesWeb/api/v1/meals/90492
+http://localhost:8080/CaloriesWeb/api/v1/meals/123108
 
 Result: {"calories":500,"description":"Test description","id":90492,"mealDate":1453341600000,"mealTime":43200000,"userId":980}
 
@@ -45,28 +45,6 @@ http://localhost:8080/CaloriesWeb/api/v1/meals/
 OK: 204
 
 Invalid ID: 204
-
-
-
-
-GET - from user
-
-http://localhost:8080/CaloriesWeb/api/v1/meals/user/980
-
-OK: 200
-
-
-Error: 
-
-
-
-
-GET - from user in date and time range 
-
-sample: http://localhost:8080/CaloriesWeb/api/v1/meals/user/980/{fromDate}/{toDate}/{fromTime}/{toTime}
-
-OK: 
-Error:
 
 
 
@@ -142,6 +120,31 @@ OK: 204
 
 
 Error: 
+
+
+
+GET - meals from user
+
+http://localhost:8080/CaloriesWeb/api/v1/users/1305/meals
+
+OK: 200
+
+Empty: 200 ([])
+
+Error: 
+
+
+
+
+GET - meals from user in date and time range 
+
+http://localhost:8080/CaloriesWeb/api/v1/users/1305/meals?fromDate=2016-01-23&toDate=2016-01-23&fromTime=09:00&toTime=18:44
+
+OK: 
+Error:
+
+
+
 
 
 

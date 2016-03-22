@@ -18,18 +18,13 @@ import com.toptal.calories.resources.util.LogUtil;
 
 
 public abstract class BaseRepository<E extends BaseEntity> {
-	private Logger logger = LoggerFactory.getLogger(getGenericClassTypeValue());
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	protected Class<E> associatedEntityType;
 	protected EntityManager em;
 	
 	public BaseRepository() {
 		associatedEntityType = getGenericClassTypeValue();
-	}
-
-	public BaseRepository(EntityManager em) {
-		this();
-		this.em = em;
 	}
 
 	public void setEntityManager(EntityManager em) {
@@ -70,9 +65,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 			if (entity == null) {
 				throw new RepositoryException("Null object received for create or update!!");
 			} else {
-				//EntityManager em = null; 
 				try {
-					//em = getEntityManager();
 					em.getTransaction().begin();
 					createdOrUpdated = em.merge(entity);
 					em.getTransaction().commit();
@@ -83,7 +76,6 @@ public abstract class BaseRepository<E extends BaseEntity> {
 						if (em.getTransaction().isActive()) {
 							em.getTransaction().rollback();
 						}
-						//em.close();
 					}
 				}
 				LogUtil.logEnd(logger, "creating " + entity, startTime);
@@ -111,11 +103,9 @@ public abstract class BaseRepository<E extends BaseEntity> {
 			if (entities == null || entities.size() == 0) {
 				throw new RepositoryException("Null or empty collection received for create or update!!");
 			} else {
-				//EntityManager em = null; 
 				createdOrUpdatedList = new ArrayList<E>(entities.size());
 				E entity = null;
 				try {
-					//em = getEntityManager();
 					int operationsSinceLastCommit = 0;
 					E createdOrUpdated = null;
 					em.getTransaction().begin();
@@ -145,7 +135,6 @@ public abstract class BaseRepository<E extends BaseEntity> {
 						if (em.getTransaction().isActive()) {
 							em.getTransaction().rollback();
 						}
-						//em.close();
 					}
 				}
 				LogUtil.logEnd(logger, " creating or updating batch containing " + (entities == null || entities.size() == 0 ? "0" : entities.size()) + " entities", startTime);
@@ -175,9 +164,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 			if (id == null) {
 				throw new RepositoryException("Null ID received for find " + className);
 			} else {
-				//EntityManager em = null; 
 				try {
-					//em = getEntityManager();
 					entity = find(id, modelEntityType);
 				} catch (PersistenceException pe) {
 					throw new RepositoryException("Error in find for " + className +  " with ID " + id + ": " + pe.getMessage(), pe);
@@ -186,7 +173,6 @@ public abstract class BaseRepository<E extends BaseEntity> {
 						if (em.getTransaction().isActive()) {
 							em.getTransaction().rollback();
 						}
-						//em.close();
 					}
 				}
 			}
@@ -244,9 +230,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 
 		logger.info("Finding all " + className + "s");
 		
-		//EntityManager em = null;
 		try{
-			//em = getEntityManager();
 			entities = em.createNamedQuery(className + ".findAll").getResultList();
 		} catch(javax.persistence.NoResultException nre) {
 			// do nothing, will just return null 
@@ -257,7 +241,6 @@ public abstract class BaseRepository<E extends BaseEntity> {
 				if (em.getTransaction().isActive()) {
 					em.getTransaction().rollback();
 				}
-				//em.close();
 			}
 		}
 		LogUtil.logEnd(logger, " finding all " + className + "s", startTime);
@@ -289,19 +272,13 @@ public abstract class BaseRepository<E extends BaseEntity> {
 		logger.info("Deleting all " + className + "s");
 		int deletedEntries = 0;
 		try {
-				//EntityManager em = null; 
 				try {
-					//em = getEntityManager();
 					em.getTransaction().begin();
 					deletedEntries = em.createNamedQuery(className+".deleteAll")
 										.executeUpdate();
 					em.getTransaction().commit();
 				} catch (PersistenceException pe) {
 					throw new RepositoryException("Error in delete all for "+className, pe);
-				} finally {
-					if (em != null && em.isOpen()) {
-						//em.close();
-					}
 				}
 				LogUtil.logEnd(logger, " deleting all " + className + "s: " + deletedEntries + " entries deleted", startTime);
 				return deletedEntries;
@@ -337,9 +314,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 			if (id == null) {
 				throw new RepositoryException("Null " + className + " id!!");
 			} else {
-				//EntityManager em = null;
 				try {
-					//em = getEntityManager();
 					E entity = find(id, modelEntityType);
 					if (entity != null) {
 						em.getTransaction().begin();
@@ -359,7 +334,6 @@ public abstract class BaseRepository<E extends BaseEntity> {
 						if (em.getTransaction().isActive()) {
 							em.getTransaction().rollback();
 						}
-						//em.close();
 					}
 				}
 				LogUtil.logEnd(logger, " removing " + className + " with ID \"" + id + "\"", startTime);
