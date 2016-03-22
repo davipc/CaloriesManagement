@@ -21,7 +21,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.toptal.calories.resources.RepositoryException;
 import com.toptal.calories.resources.TestDBBase;
 import com.toptal.calories.resources.entity.Meal;
 import com.toptal.calories.resources.entity.User;
@@ -30,7 +29,7 @@ public class TestMeals extends TestDBBase {
 
 	public static Logger logger = LoggerFactory.getLogger(TestMeals.class);
 
-	protected static Meals model = new Meals();
+	protected static Meals repository = new RepositoryFactory().createRepository(Meals.class);
 
 	private static SimpleDateFormat sdf = new SimpleDateFormat("HHmmssSSS");
 	private static String login = sdf.format(new Date());
@@ -114,7 +113,7 @@ public class TestMeals extends TestDBBase {
 		if (testMeal == null) {
 			throw new RepositoryException("Null test Meal received for create!"); 
 		}
-		meal = model.createOrUpdate(testMeal);
+		meal = repository.createOrUpdate(testMeal);
 		if (meal == null) {
 			throw new RepositoryException("Null Meal returned from create!"); 
 		}
@@ -125,7 +124,7 @@ public class TestMeals extends TestDBBase {
 		if (testMeal == null || testMeal.getId() == null ) {
 			throw new RepositoryException("Null entity or Id received: " + testMeal);
 		}
-		model.remove(testMeal.getId());
+		repository.remove(testMeal.getId());
 	}
 	
 	
@@ -145,22 +144,22 @@ public class TestMeals extends TestDBBase {
 		Meal testMeal = getMeal(testUser, mealDate1, mealTime1);
 		boolean removed = false;
 		try {
-			testMeal = model.createOrUpdate(testMeal);
+			testMeal = repository.createOrUpdate(testMeal);
 
-			Meal meal = model.find(testMeal.getId());
+			Meal meal = repository.find(testMeal.getId());
 			assertNotNull("Customer was expected to be found: " + testMeal, meal);
 			assertEquals("Inserted and found meals didn't match: ", testMeal, meal);
 			
 			meal.setCalories(700);
-			Meal updMeal = model.createOrUpdate(meal);
+			Meal updMeal = repository.createOrUpdate(meal);
 			// Update the value on local object to compare after DB update
-			meal = model.find(testMeal.getId());
+			meal = repository.find(testMeal.getId());
 			assertNotNull("Meal was expected to be found: " + meal, meal);
 			assertEquals("Updated and found meals didn't match: ", updMeal, meal);
 			
-			model.remove(testMeal.getId());
-			removed = true;
-			meal = model.find(testMeal.getId());
+			removed = repository.remove(testMeal.getId());
+			assertTrue("Entity should have been removed!", removed);
+			meal = repository.find(testMeal.getId());
 			assertNull("Meal was expected NOT to be found: " + testMeal, meal);
 		} catch (Exception e) {
 			printException(e);
@@ -168,7 +167,7 @@ public class TestMeals extends TestDBBase {
 		} finally {
 			if (!removed && testMeal != null && testMeal.getId() != null) {
 				try {
-					model.remove(testMeal.getId());
+					repository.remove(testMeal.getId());
 				} catch (Exception e) {
 					logger.error("In Finally Block: Failed to remove entity", e);
 				}
@@ -186,39 +185,39 @@ public class TestMeals extends TestDBBase {
 		try {
 			// create test Meal
 			testMeal = getMeal(testUser, mealDate1, mealTime1);
-			testMeal = model.createOrUpdate(testMeal);
+			testMeal = repository.createOrUpdate(testMeal);
 			// create a second Meal
 			secondMeal = getMeal(testUser, mealDate2, mealTime2);
-			secondMeal = model.createOrUpdate(secondMeal);
+			secondMeal = repository.createOrUpdate(secondMeal);
 			// create a third Meal
 			thirdMeal = getMeal(otherTestUser, mealDate1, mealTime1);
-			thirdMeal = model.createOrUpdate(thirdMeal);
+			thirdMeal = repository.createOrUpdate(thirdMeal);
 			// create a fourth Meal
 			fourthMeal = getMeal(otherTestUser, mealDate2, mealTime2);
-			fourthMeal = model.createOrUpdate(fourthMeal);
+			fourthMeal = repository.createOrUpdate(fourthMeal);
 			
-			List<Meal> meals = model.findAll();
+			List<Meal> meals = repository.findAll();
 			assertNotNull("At least four meals should have been found", meals);
 			assertTrue("At least four meals should have been found", meals.size() >= 4);
 			assertTrue("Created meals were not found in the returned list", meals.contains(testMeal) && meals.contains(secondMeal));
-		} catch (RepositoryException me) {
-			fail("Get All meals should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Get All meals should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Get All meals should NOT have caused an Exception!");
 		} finally {
 			try {
 				if (testMeal != null) {
-					model.remove(testMeal.getId());
+					repository.remove(testMeal.getId());
 				}
 				if (secondMeal != null) {
-					model.remove(secondMeal.getId());
+					repository.remove(secondMeal.getId());
 				}
 				if (thirdMeal != null) {
-					model.remove(thirdMeal.getId());
+					repository.remove(thirdMeal.getId());
 				}
 				if (fourthMeal != null) {
-					model.remove(fourthMeal.getId());
+					repository.remove(fourthMeal.getId());
 				}
 			} catch (Exception e) {
 				logger.error("In Finally Block: Failed to remove entities", e);
@@ -233,13 +232,13 @@ public class TestMeals extends TestDBBase {
 	public void testCreateMealNullMeal() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.createOrUpdate(null);
-			fail("Null Meal should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(null);
+			fail("Null Meal should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Meal should have caused a ModelException!");
+			fail("Null Meal should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -252,13 +251,13 @@ public class TestMeals extends TestDBBase {
 		try {
 			Meal meal = getMeal(testUser, mealDate1, mealTime1);
 			meal.setUserId(null);
-			model.createOrUpdate(meal);
-			fail("Null User ID should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(meal);
+			fail("Null User ID should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User ID should have caused a ModelException!");
+			fail("Null User ID should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -271,13 +270,13 @@ public class TestMeals extends TestDBBase {
 		try {
 			Meal meal = getMeal(testUser, mealDate1, mealTime1);
 			meal.setCalories(null);
-			model.createOrUpdate(meal);
-			fail("Null Meal Calories should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(meal);
+			fail("Null Meal Calories should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Meal Calories should have caused a ModelException!");
+			fail("Null Meal Calories should have caused a RepositoryExcpetion!");
 		}
 	}
 	
@@ -290,13 +289,13 @@ public class TestMeals extends TestDBBase {
 		try {
 			Meal meal = getMeal(testUser, mealDate1, mealTime1);
 			meal.setDescription(null);
-			model.createOrUpdate(meal);
-			fail("Null Meal Description should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(meal);
+			fail("Null Meal Description should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Meal Description should have caused a ModelException!");
+			fail("Null Meal Description should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -304,13 +303,13 @@ public class TestMeals extends TestDBBase {
 	public void testFindMealNullMealId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.find(null);
-			fail("Null Meal ID should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.find(null);
+			fail("Null Meal ID should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Meal ID should have caused a ModelException!");
+			fail("Null Meal ID should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -318,10 +317,10 @@ public class TestMeals extends TestDBBase {
 	public void testFindMealInvalidMealId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			Meal meal = (Meal)model.find(invalidId);
+			Meal meal = (Meal)repository.find(invalidId);
 			assertNull("No meals should have been found for invalid Meal ID", meal);
-		} catch (RepositoryException me) {
-			fail("Invalid Meal ID should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Invalid Meal ID should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Invalid Meal ID should NOT have caused an Exception!");
@@ -332,13 +331,13 @@ public class TestMeals extends TestDBBase {
 	public void testUpdateMealNullMeal() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.createOrUpdate(null);
-			fail("Null Meal should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(null);
+			fail("Null Meal should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Meal should have caused a ModelException!");
+			fail("Null Meal should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -348,15 +347,15 @@ public class TestMeals extends TestDBBase {
 		Meal meal = getMeal(testUser, mealDate1, mealTime1);
 		try {
 			// create Meal for updating
-			meal = model.createOrUpdate(meal);
+			meal = repository.createOrUpdate(meal);
 			meal.setDescription(null);
-			meal = model.createOrUpdate(meal);
-			fail("Null Meal Description should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			meal = repository.createOrUpdate(meal);
+			fail("Null Meal Description should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Meal Description should have caused a ModelException!");
+			fail("Null Meal Description should have caused a RepositoryExcpetion!");
 		} finally {
 			if (meal != null && meal.getId() != null) {
 				try {
@@ -374,15 +373,15 @@ public class TestMeals extends TestDBBase {
 		Meal meal = getMeal(testUser, mealDate1, mealTime1);
 		try {
 			// create Meal for updating
-			meal = model.createOrUpdate(meal);
+			meal = repository.createOrUpdate(meal);
 			meal.setCalories(null);
-			meal = model.createOrUpdate(meal);
-			fail("Null Meal Calories should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			meal = repository.createOrUpdate(meal);
+			fail("Null Meal Calories should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Meal Calories should have caused a ModelException!");
+			fail("Null Meal Calories should have caused a RepositoryExcpetion!");
 		} finally {
 			if (meal != null && meal.getId() != null) {
 				try {
@@ -398,13 +397,13 @@ public class TestMeals extends TestDBBase {
 	public void testRemoveMealNullMealId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.remove(null);
-			fail("Null Meal ID should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.remove(null);
+			fail("Null Meal ID should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Meal ID should have caused a ModelException!");
+			fail("Null Meal ID should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -412,13 +411,14 @@ public class TestMeals extends TestDBBase {
 	public void testRemoveMealInvalidMealId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.remove(invalidId);
-			fail("Invalid Meal ID should have caused a ModelException!");
-		} catch (RepositoryException me) {
-			// All good
+			boolean removed = repository.remove(invalidId);
+			assertTrue("No entity should have been removed", !removed);
+		} catch (RepositoryException re) {
+			printException(re);
+			fail("Invalid Meal ID should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
-			fail("Invalid Meal ID should have caused a ModelException!");
+			fail("Invalid Meal ID should NOT have caused a RepositoryExcpetion!");
 		}
 	}
 	
@@ -434,13 +434,13 @@ public class TestMeals extends TestDBBase {
 	public void testFindUserMealsNullUserId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.findUserMeals(null);
-			fail("Null User ID should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.findUserMeals(null);
+			fail("Null User ID should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User ID should have caused a ModelException!");
+			fail("Null User ID should have caused a RepositoryExcpetion!");
 		}
 	}
 	
@@ -454,38 +454,38 @@ public class TestMeals extends TestDBBase {
 		try {
 			// create test Meal
 			testMeal = getMeal(testUser, mealDate1, mealTime1);
-			testMeal = model.createOrUpdate(testMeal);
+			testMeal = repository.createOrUpdate(testMeal);
 			// create a second Meal
 			secondMeal = getMeal(testUser, mealDate2, mealTime2);
-			secondMeal = model.createOrUpdate(secondMeal);
+			secondMeal = repository.createOrUpdate(secondMeal);
 			// create a third Meal
 			thirdMeal = getMeal(otherTestUser, mealDate1, mealTime1);
-			thirdMeal = model.createOrUpdate(thirdMeal);
+			thirdMeal = repository.createOrUpdate(thirdMeal);
 			// create a fourth Meal
 			fourthMeal = getMeal(otherTestUser, mealDate2, mealTime2);
-			fourthMeal = model.createOrUpdate(fourthMeal);
+			fourthMeal = repository.createOrUpdate(fourthMeal);
 			
-			List<Meal> meals = model.findUserMeals(invalidId);
+			List<Meal> meals = repository.findUserMeals(invalidId);
 			assertNotNull("No meals should have been found", meals);
 			assertEquals("No meals should have been found", 0, meals.size());
-		} catch (RepositoryException me) {
-			fail("Find User meals should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Find User meals should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals should NOT have caused an Exception!");
 		} finally {
 			try {
 				if (testMeal != null) {
-					model.remove(testMeal.getId());
+					repository.remove(testMeal.getId());
 				}
 				if (secondMeal != null) {
-					model.remove(secondMeal.getId());
+					repository.remove(secondMeal.getId());
 				}
 				if (thirdMeal != null) {
-					model.remove(thirdMeal.getId());
+					repository.remove(thirdMeal.getId());
 				}
 				if (fourthMeal != null) {
-					model.remove(fourthMeal.getId());
+					repository.remove(fourthMeal.getId());
 				}
 			} catch (Exception e) {
 				logger.error("In Finally Block: Failed to remove entities", e);
@@ -503,38 +503,38 @@ public class TestMeals extends TestDBBase {
 		try {
 			// create test Meal
 			testMeal = getMeal(testUser, mealDate1, mealTime1);
-			testMeal = model.createOrUpdate(testMeal);
+			testMeal = repository.createOrUpdate(testMeal);
 			// create a second Meal
 			secondMeal = getMeal(testUser, mealDate2, mealTime2);
-			secondMeal = model.createOrUpdate(secondMeal);
+			secondMeal = repository.createOrUpdate(secondMeal);
 			// create a third Meal
 			thirdMeal = getMeal(otherTestUser, mealDate1, mealTime1);
-			thirdMeal = model.createOrUpdate(thirdMeal);
+			thirdMeal = repository.createOrUpdate(thirdMeal);
 			// create a fourth Meal
 			fourthMeal = getMeal(otherTestUser, mealDate2, mealTime2);
-			fourthMeal = model.createOrUpdate(fourthMeal);
+			fourthMeal = repository.createOrUpdate(fourthMeal);
 			
-			List<Meal> meals = model.findUserMeals(invalidId);
+			List<Meal> meals = repository.findUserMeals(invalidId);
 			assertNotNull("No meals should have been found", meals);
 			assertEquals("No meals should have been found", 0, meals.size());
-		} catch (RepositoryException me) {
-			fail("Find User meals should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Find User meals should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals should NOT have caused an Exception!");
 		} finally {
 			try {
 				if (testMeal != null) {
-					model.remove(testMeal.getId());
+					repository.remove(testMeal.getId());
 				}
 				if (secondMeal != null) {
-					model.remove(secondMeal.getId());
+					repository.remove(secondMeal.getId());
 				}
 				if (thirdMeal != null) {
-					model.remove(thirdMeal.getId());
+					repository.remove(thirdMeal.getId());
 				}
 				if (fourthMeal != null) {
-					model.remove(fourthMeal.getId());
+					repository.remove(fourthMeal.getId());
 				}
 			} catch (Exception e) {
 				logger.error("In Finally Block: Failed to remove entities", e);
@@ -553,36 +553,36 @@ public class TestMeals extends TestDBBase {
 		try {
 			// create test Meal
 			testMeal = getMeal(testUser, mealDate1, mealTime1);
-			testMeal = model.createOrUpdate(testMeal);
+			testMeal = repository.createOrUpdate(testMeal);
 			// create a second Meal
 			secondMeal = getMeal(testUser, mealDate2, mealTime2);
-			secondMeal = model.createOrUpdate(secondMeal);
+			secondMeal = repository.createOrUpdate(secondMeal);
 			// create a third Meal
 			thirdMeal = getMeal(otherTestUser, mealDate1, mealTime1);
-			thirdMeal = model.createOrUpdate(thirdMeal);
+			thirdMeal = repository.createOrUpdate(thirdMeal);
 			
-			List<Meal> meals = model.findUserMeals(otherTestUser.getId());
+			List<Meal> meals = repository.findUserMeals(otherTestUser.getId());
 			assertNotNull("One meal should have been found", meals);
 			assertEquals("One meal should have been found", 1, meals.size());
 			assertTrue("Created meals were not found in the returned list", meals.contains(thirdMeal));
-		} catch (RepositoryException me) {
-			fail("Find User meals should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Find User meals should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals should NOT have caused an Exception!");
 		} finally {
 			try {
 				if (testMeal != null) {
-					model.remove(testMeal.getId());
+					repository.remove(testMeal.getId());
 				}
 				if (secondMeal != null) {
-					model.remove(secondMeal.getId());
+					repository.remove(secondMeal.getId());
 				}
 				if (thirdMeal != null) {
-					model.remove(thirdMeal.getId());
+					repository.remove(thirdMeal.getId());
 				}
 				if (fourthMeal != null) {
-					model.remove(fourthMeal.getId());
+					repository.remove(fourthMeal.getId());
 				}
 			} catch (Exception e) {
 				logger.error("In Finally Block: Failed to remove entities", e);
@@ -600,39 +600,39 @@ public class TestMeals extends TestDBBase {
 		try {
 			// create test Meal
 			testMeal = getMeal(testUser, mealDate1, mealTime1);
-			testMeal = model.createOrUpdate(testMeal);
+			testMeal = repository.createOrUpdate(testMeal);
 			// create a second Meal
 			secondMeal = getMeal(testUser, mealDate2, mealTime2);
-			secondMeal = model.createOrUpdate(secondMeal);
+			secondMeal = repository.createOrUpdate(secondMeal);
 			// create a third Meal
 			thirdMeal = getMeal(otherTestUser, mealDate1, mealTime1);
-			thirdMeal = model.createOrUpdate(thirdMeal);
+			thirdMeal = repository.createOrUpdate(thirdMeal);
 			// create a fourth Meal
 			fourthMeal = getMeal(otherTestUser, mealDate2, mealTime2);
-			fourthMeal = model.createOrUpdate(fourthMeal);
+			fourthMeal = repository.createOrUpdate(fourthMeal);
 			
-			List<Meal> meals = model.findUserMeals(testUser.getId());
+			List<Meal> meals = repository.findUserMeals(testUser.getId());
 			assertNotNull("Two meals should have been found", meals);
 			assertEquals("Two meals should have been found", 2, meals.size());
 			assertTrue("Created meals were not found in the returned list", meals.contains(testMeal) && meals.contains(secondMeal));
-		} catch (RepositoryException me) {
-			fail("Find User meals should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Find User meals should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals should NOT have caused an Exception!");
 		} finally {
 			try {
 				if (testMeal != null) {
-					model.remove(testMeal.getId());
+					repository.remove(testMeal.getId());
 				}
 				if (secondMeal != null) {
-					model.remove(secondMeal.getId());
+					repository.remove(secondMeal.getId());
 				}
 				if (thirdMeal != null) {
-					model.remove(thirdMeal.getId());
+					repository.remove(thirdMeal.getId());
 				}
 				if (fourthMeal != null) {
-					model.remove(fourthMeal.getId());
+					repository.remove(fourthMeal.getId());
 				}
 			} catch (Exception e) {
 				logger.error("In Finally Block: Failed to remove entities", e);
@@ -736,13 +736,13 @@ public class TestMeals extends TestDBBase {
 	public void testfindUserMealsInDateAndTimeRangesNullUser() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.findUserMealsInDateAndTimeRanges(null, new Date(0), new Date(), getTime(0,0), getTime(23,59));
-			fail("Null User ID should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.findUserMealsInDateAndTimeRanges(null, new Date(0), new Date(), getTime(0,0), getTime(23,59));
+			fail("Null User ID should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User ID should have caused a ModelException!");
+			fail("Null User ID should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -750,13 +750,13 @@ public class TestMeals extends TestDBBase {
 	public void testfindUserMealsInDateAndTimeRangesNullFromDate() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.findUserMealsInDateAndTimeRanges(testUser.getId(), null, new Date(), getTime(0,0), getTime(23,59));
-			fail("Null start date should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.findUserMealsInDateAndTimeRanges(testUser.getId(), null, new Date(), getTime(0,0), getTime(23,59));
+			fail("Null start date should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null end date should have caused a ModelException!");
+			fail("Null end date should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -764,13 +764,13 @@ public class TestMeals extends TestDBBase {
 	public void testfindUserMealsInDateAndTimeRangesNullToDate() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.findUserMealsInDateAndTimeRanges(testUser.getId(), new Date(0), null, getTime(0,0), getTime(23,59));
-			fail("Null end date should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.findUserMealsInDateAndTimeRanges(testUser.getId(), new Date(0), null, getTime(0,0), getTime(23,59));
+			fail("Null end date should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null end date should have caused a ModelException!");
+			fail("Null end date should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -778,13 +778,13 @@ public class TestMeals extends TestDBBase {
 	public void testfindUserMealsInDateAndTimeRangesNullFromTime() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.findUserMealsInDateAndTimeRanges(testUser.getId(), new Date(0), new Date(), null, getTime(23,59));
-			fail("Null start time should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.findUserMealsInDateAndTimeRanges(testUser.getId(), new Date(0), new Date(), null, getTime(23,59));
+			fail("Null start time should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null start time  should have caused a ModelException!");
+			fail("Null start time  should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -792,13 +792,13 @@ public class TestMeals extends TestDBBase {
 	public void testfindUserMealsInDateAndTimeRangesNullToTime() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.findUserMealsInDateAndTimeRanges(testUser.getId(), new Date(0), new Date(), getTime(0,0), null);
-			fail("Null end time should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.findUserMealsInDateAndTimeRanges(testUser.getId(), new Date(0), new Date(), getTime(0,0), null);
+			fail("Null end time should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null end time should have caused a ModelException!");
+			fail("Null end time should have caused a RepositoryExcpetion!");
 		}
 	}
 	
@@ -807,13 +807,13 @@ public class TestMeals extends TestDBBase {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
 			// start date = today, end date = yesterday
-			model.findUserMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(0, 0, 0), getDateDaysAgoAtTime(1, 0, 0), getTime(0,0), getTime(23,59));
-			fail("Invalid start and end dates should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.findUserMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(0, 0, 0), getDateDaysAgoAtTime(1, 0, 0), getTime(0,0), getTime(23,59));
+			fail("Invalid start and end dates should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Invalid start and end dates should have caused a ModelException!");
+			fail("Invalid start and end dates should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -821,13 +821,13 @@ public class TestMeals extends TestDBBase {
 	public void testfindUserMealsInDateAndTimeRangesStartTimeAfterEndTime() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.findUserMealsInDateAndTimeRanges(testUser.getId(), new Date(0), new Date(), getTime(15,10), getTime(15,9));
-			fail("Invalid start and end times should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.findUserMealsInDateAndTimeRanges(testUser.getId(), new Date(0), new Date(), getTime(15,10), getTime(15,9));
+			fail("Invalid start and end times should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Invalid start and end times should have caused a ModelException!");
+			fail("Invalid start and end times should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -842,35 +842,35 @@ public class TestMeals extends TestDBBase {
 		try {
 			// create test Meal
 			testMeal = getMeal(testUser, mealDate1, mealTime1);
-			testMeal = model.createOrUpdate(testMeal);
+			testMeal = repository.createOrUpdate(testMeal);
 			// create a second Meal
 			secondMeal = getMeal(testUser, mealDate2, mealTime2);
-			secondMeal = model.createOrUpdate(secondMeal);
+			secondMeal = repository.createOrUpdate(secondMeal);
 			// create a third Meal
 			thirdMeal = getMeal(otherTestUser, mealDate1, mealTime1);
-			thirdMeal = model.createOrUpdate(thirdMeal);
+			thirdMeal = repository.createOrUpdate(thirdMeal);
 			
-			List<Meal> meals = model.findUserMealsInDateAndTimeRanges(invalidId, new Date(0), new Date(), getTime(0,0), getTime(23,59));
+			List<Meal> meals = repository.findUserMealsInDateAndTimeRanges(invalidId, new Date(0), new Date(), getTime(0,0), getTime(23,59));
 			assertNotNull("No meals should have been found", meals);
 			assertEquals("No meals should have been found", 0, meals.size());
-		} catch (RepositoryException me) {
-			fail("testDateFuncsFourMeals should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("testDateFuncsFourMeals should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("testDateFuncsFourMeals should NOT have caused an Exception!");
 		} finally {
 			try {
 				if (testMeal != null) {
-					model.remove(testMeal.getId());
+					repository.remove(testMeal.getId());
 				}
 				if (secondMeal != null) {
-					model.remove(secondMeal.getId());
+					repository.remove(secondMeal.getId());
 				}
 				if (thirdMeal != null) {
-					model.remove(thirdMeal.getId());
+					repository.remove(thirdMeal.getId());
 				}
 				if (fourthMeal != null) {
-					model.remove(fourthMeal.getId());
+					repository.remove(fourthMeal.getId());
 				}
 			} catch (Exception e) {
 				logger.error("In Finally Block: Failed to remove entities", e);
@@ -886,11 +886,11 @@ public class TestMeals extends TestDBBase {
 			// create test meals
 			prepareForDateTimeRangeTests();
 			
-			List<Meal> meals = model.findUserMealsInDateAndTimeRanges(thirdTestUser.getId(), new Date(0), new Date(), getTime(0,0), getTime(23,59));
+			List<Meal> meals = repository.findUserMealsInDateAndTimeRanges(thirdTestUser.getId(), new Date(0), new Date(), getTime(0,0), getTime(23,59));
 			assertNotNull("No meals should have been found", meals);
 			assertEquals("No meals should have been found", 0, meals.size());
-		} catch (RepositoryException me) {
-			fail("Find User meals In Date And Time Ranges should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals In Date And Time Ranges should NOT have caused an Exception!");
@@ -906,11 +906,11 @@ public class TestMeals extends TestDBBase {
 			// create test meals
 			prepareForDateTimeRangeTests();
 			
-			List<Meal> meals = model.findUserMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(62, 0, 0), getDateDaysAgoAtTime(61, 0, 0), getTime(0,0), getTime(23,59));
+			List<Meal> meals = repository.findUserMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(62, 0, 0), getDateDaysAgoAtTime(61, 0, 0), getTime(0,0), getTime(23,59));
 			assertNotNull("No meals should have been found", meals);
 			assertEquals("No meals should have been found", 0, meals.size());
-		} catch (RepositoryException me) {
-			fail("Find User meals In Date And Time Ranges should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals In Date And Time Ranges should NOT have caused an Exception!");
@@ -926,11 +926,11 @@ public class TestMeals extends TestDBBase {
 			// create test meals
 			prepareForDateTimeRangeTests();
 			
-			List<Meal> meals = model.findUserMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(0, 0, 0), getTime(0,0), getTime(8,30));
+			List<Meal> meals = repository.findUserMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(0, 0, 0), getTime(0,0), getTime(8,30));
 			assertNotNull("No meals should have been found", meals);
 			assertEquals("No meals should have been found", 0, meals.size());
-		} catch (RepositoryException me) {
-			fail("Find User meals In Date And Time Ranges should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals In Date And Time Ranges should NOT have caused an Exception!");
@@ -946,11 +946,11 @@ public class TestMeals extends TestDBBase {
 			// create test meals
 			prepareForDateTimeRangeTests();
 			
-			List<Meal> meals = model.findUserMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(60, 0, 0), getTime(0,0), getTime(23,59));
+			List<Meal> meals = repository.findUserMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(60, 0, 0), getTime(0,0), getTime(23,59));
 			assertNotNull("Meals should have been found", meals);
 			assertEquals("Unexpected number of meals found", 3, meals.size());
-		} catch (RepositoryException me) {
-			fail("Find User meals In Date And Time Ranges should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals In Date And Time Ranges should NOT have caused an Exception!");
@@ -966,11 +966,11 @@ public class TestMeals extends TestDBBase {
 			// create test meals
 			prepareForDateTimeRangeTests();
 			
-			List<Meal> meals = model.findUserMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(0, 0, 0), getTime(9,0), getTime(9,0));
+			List<Meal> meals = repository.findUserMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(0, 0, 0), getTime(9,0), getTime(9,0));
 			assertNotNull("Meals should have been found", meals);
 			assertEquals("Unexpected number of meals found", 61, meals.size());
-		} catch (RepositoryException me) {
-			fail("Find User meals In Date And Time Ranges should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals In Date And Time Ranges should NOT have caused an Exception!");
@@ -986,11 +986,11 @@ public class TestMeals extends TestDBBase {
 			// create test meals
 			prepareForDateTimeRangeTests();
 			
-			List<Meal> meals = model.findUserMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(0, 0, 0), getTime(0,0), getTime(23,0));
+			List<Meal> meals = repository.findUserMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(0, 0, 0), getTime(0,0), getTime(23,0));
 			assertNotNull("Meals should have been found", meals);
 			assertEquals("Unexpected number of meals found", 183, meals.size());
-		} catch (RepositoryException me) {
-			fail("Find User meals In Date And Time Ranges should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals In Date And Time Ranges should NOT have caused an Exception!");

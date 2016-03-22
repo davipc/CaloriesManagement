@@ -43,6 +43,7 @@
 	</logger>
 
 	<root level="WARN">
-		<appender-ref ref="STDOUT" />
+		<!-- If enabled everything will be printed to STDOUT (on  every log level) -->		
+		<!-- <appender-ref ref="STDOUT" /> -->
 	</root>
 </configuration>

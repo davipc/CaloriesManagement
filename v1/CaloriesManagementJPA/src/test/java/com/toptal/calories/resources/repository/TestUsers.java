@@ -18,7 +18,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.toptal.calories.resources.RepositoryException;
 import com.toptal.calories.resources.TestDBBase;
 import com.toptal.calories.resources.entity.Gender;
 import com.toptal.calories.resources.entity.Role;
@@ -28,7 +27,7 @@ public class TestUsers extends TestDBBase {
 
 	public static Logger logger = LoggerFactory.getLogger(TestUsers.class);
 
-	protected static Users model = new Users();
+	protected static Users repository = new RepositoryFactory().createRepository(Users.class);
 
 	private static SimpleDateFormat sdf = new SimpleDateFormat("HHmmssSSS");
 	private static String login = sdf.format(new Date());
@@ -77,7 +76,7 @@ public class TestUsers extends TestDBBase {
 			try {
 				testRole = TestRoles.createRole(testRole);
 				roles.add(testRole);
-			} catch (RepositoryException me) {
+			} catch (RepositoryException re) {
 				for (Role role: roles) {
 					if (role != null && role.getId() != null) {
 						TestRoles.removeRole(role);
@@ -96,7 +95,7 @@ public class TestUsers extends TestDBBase {
 		if (testUser == null) {
 			throw new RepositoryException("Null test User received for create!"); 
 		}
-		user = model.createOrUpdate(testUser);
+		user = repository.createOrUpdate(testUser);
 		if (user == null) {
 			throw new RepositoryException("Null User returned from create!"); 
 		}
@@ -107,7 +106,7 @@ public class TestUsers extends TestDBBase {
 		if (testUser == null || testUser.getId() == null ) {
 			throw new RepositoryException("Null entity or Id received: " + testUser);
 		}
-		model.remove(testUser.getId());
+		repository.remove(testUser.getId());
 	}
 	
 	
@@ -127,22 +126,22 @@ public class TestUsers extends TestDBBase {
 		User testUser = getUser(login);
 		boolean removed = false;
 		try {
-			testUser = model.createOrUpdate(testUser);
+			testUser = repository.createOrUpdate(testUser);
 
-			User user = model.find(testUser.getId());
+			User user = repository.find(testUser.getId());
 			assertNotNull("Customer was expected to be found: " + testUser, user);
 			assertEquals("Inserted and found users didn't match: ", testUser, user);
 			
 			user.setName(otherLogin);
-			User updUser = model.createOrUpdate(user);
+			User updUser = repository.createOrUpdate(user);
 			// Update the value on local object to compare after DB update
-			user = model.find(testUser.getId());
+			user = repository.find(testUser.getId());
 			assertNotNull("User was expected to be found: " + user, user);
 			assertEquals("Updated and found users didn't match: ", updUser, user);
 			
-			model.remove(testUser.getId());
-			removed = true;
-			user = model.find(testUser.getId());
+			removed = repository.remove(testUser.getId());
+			assertTrue("Entity should have been removed!", removed);
+			user = repository.find(testUser.getId());
 			assertNull("User was expected NOT to be found: " + testUser, user);
 		} catch (Exception e) {
 			printException(e);
@@ -150,7 +149,7 @@ public class TestUsers extends TestDBBase {
 		} finally {
 			if (!removed && testUser != null && testUser.getId() != null) {
 				try {
-					model.remove(testUser.getId());
+					repository.remove(testUser.getId());
 				} catch (Exception e) {
 					logger.error("In Finally Block: Failed to remove entity", e);
 				}
@@ -166,17 +165,17 @@ public class TestUsers extends TestDBBase {
 		try {
 			// create test User
 			testUser = getUser(login);
-			testUser = model.createOrUpdate(testUser);
+			testUser = repository.createOrUpdate(testUser);
 			// create a second User
 			otherUser = getUser(otherLogin);
-			otherUser = model.createOrUpdate(otherUser);
+			otherUser = repository.createOrUpdate(otherUser);
 			
-			List<User> Users = model.findAll();
+			List<User> Users = repository.findAll();
 			assertNotNull("At least two users should have been found", Users);
 			assertTrue("At least two users should have been found", Users.size() >= 2);
 			assertTrue("Created users were not found in the returned list", Users.contains(testUser) && Users.contains(otherUser));
-		} catch (RepositoryException me) {
-			fail("Get All Users should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Get All Users should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Get All Users should NOT have caused an Exception!");
@@ -205,13 +204,13 @@ public class TestUsers extends TestDBBase {
 	public void testCreateUserNullUser() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.createOrUpdate(null);
-			fail("Null User should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(null);
+			fail("Null User should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User should have caused a ModelException!");
+			fail("Null User should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -223,13 +222,13 @@ public class TestUsers extends TestDBBase {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
 			User user = getUser(null);
-			model.createOrUpdate(user);
-			fail("Null User Login should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(user);
+			fail("Null User Login should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User Login should have caused a ModelException!");
+			fail("Null User Login should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -242,13 +241,13 @@ public class TestUsers extends TestDBBase {
 		try {
 			User user = getUser(login);
 			user.setName(null);
-			model.createOrUpdate(user);
-			fail("Null User Name should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(user);
+			fail("Null User Name should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User Name should have caused a ModelException!");
+			fail("Null User Name should have caused a RepositoryExcpetion!");
 		}
 	}
 	
@@ -261,13 +260,13 @@ public class TestUsers extends TestDBBase {
 		try {
 			User user = getUser(login);
 			user.setPassword(null);
-			model.createOrUpdate(user);
-			fail("Null User Password should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(user);
+			fail("Null User Password should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User Password should have caused a ModelException!");
+			fail("Null User Password should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -280,13 +279,13 @@ public class TestUsers extends TestDBBase {
 		try {
 			User user = getUser(login);
 			user.setGender(null);
-			model.createOrUpdate(user);
-			fail("Null User Gender should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(user);
+			fail("Null User Gender should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User Gender should have caused a ModelException!");
+			fail("Null User Gender should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -299,13 +298,13 @@ public class TestUsers extends TestDBBase {
 		try {
 			User user = getUser(login);
 			user.setDailyCalories(null);
-			model.createOrUpdate(user);
-			fail("Null User daily calories should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(user);
+			fail("Null User daily calories should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User daily calories should have caused a ModelException!");
+			fail("Null User daily calories should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -318,13 +317,13 @@ public class TestUsers extends TestDBBase {
 		try {
 			User user = getUser(login);
 			user.setCreationDt(null);
-			model.createOrUpdate(user);
-			fail("Null User creation date should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(user);
+			fail("Null User creation date should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User creation date should have caused a ModelException!");
+			fail("Null User creation date should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -332,13 +331,13 @@ public class TestUsers extends TestDBBase {
 	public void testFindUserNullUserId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.find(null);
-			fail("Null User ID should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.find(null);
+			fail("Null User ID should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User ID should have caused a ModelException!");
+			fail("Null User ID should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -346,10 +345,10 @@ public class TestUsers extends TestDBBase {
 	public void testFindUserInvalidUserId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			User user = (User)model.find(invalidId);
+			User user = (User)repository.find(invalidId);
 			assertNull("No Users should have been found for invalid User ID", user);
-		} catch (RepositoryException me) {
-			fail("Invalid User ID should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Invalid User ID should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Invalid User ID should NOT have caused an Exception!");
@@ -360,13 +359,13 @@ public class TestUsers extends TestDBBase {
 	public void testUpdateUserNullUser() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.createOrUpdate(null);
-			fail("Null User should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(null);
+			fail("Null User should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User should have caused a ModelException!");
+			fail("Null User should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -376,15 +375,15 @@ public class TestUsers extends TestDBBase {
 		User user = getUser(login);
 		try {
 			// create User for updating
-			user = model.createOrUpdate(user);
+			user = repository.createOrUpdate(user);
 			user.setLogin(null);
-			user = model.createOrUpdate(user);
-			fail("Null User ID should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			user = repository.createOrUpdate(user);
+			fail("Null User ID should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User ID should have caused a ModelException!");
+			fail("Null User ID should have caused a RepositoryExcpetion!");
 		} finally {
 			if (user != null && user.getId() != null) {
 				try {
@@ -402,15 +401,15 @@ public class TestUsers extends TestDBBase {
 		User user = getUser(login);
 		try {
 			// create User for updating
-			user = model.createOrUpdate(user);
+			user = repository.createOrUpdate(user);
 			user.setName(null);
-			user = model.createOrUpdate(user);
-			fail("Null User name should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			user = repository.createOrUpdate(user);
+			fail("Null User name should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User name should have caused a ModelException!");
+			fail("Null User name should have caused a RepositoryExcpetion!");
 		} finally {
 			if (user != null && user.getId() != null) {
 				try {
@@ -428,15 +427,15 @@ public class TestUsers extends TestDBBase {
 		User user = getUser(login);
 		try {
 			// create User for updating
-			user = model.createOrUpdate(user);
+			user = repository.createOrUpdate(user);
 			user.setPassword(null);
-			user = model.createOrUpdate(user);
-			fail("Null User Password should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			user = repository.createOrUpdate(user);
+			fail("Null User Password should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User Password should have caused a ModelException!");
+			fail("Null User Password should have caused a RepositoryExcpetion!");
 		} finally {
 			if (user != null && user.getId() != null) {
 				try {
@@ -454,15 +453,15 @@ public class TestUsers extends TestDBBase {
 		User user = getUser(login);
 		try {
 			// create User for updating
-			user = model.createOrUpdate(user);
+			user = repository.createOrUpdate(user);
 			user.setGender(null);
-			user = model.createOrUpdate(user);
-			fail("Null User gender should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			user = repository.createOrUpdate(user);
+			fail("Null User gender should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User gender should have caused a ModelException!");
+			fail("Null User gender should have caused a RepositoryExcpetion!");
 		} finally {
 			if (user != null && user.getId() != null) {
 				try {
@@ -480,15 +479,15 @@ public class TestUsers extends TestDBBase {
 		User user = getUser(login);
 		try {
 			// create User for updating
-			user = model.createOrUpdate(user);
+			user = repository.createOrUpdate(user);
 			user.setDailyCalories(null);
-			user = model.createOrUpdate(user);
-			fail("Null User daily calories should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			user = repository.createOrUpdate(user);
+			fail("Null User daily calories should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User daily calories should have caused a ModelException!");
+			fail("Null User daily calories should have caused a RepositoryExcpetion!");
 		} finally {
 			if (user != null && user.getId() != null) {
 				try {
@@ -506,15 +505,15 @@ public class TestUsers extends TestDBBase {
 		User user = getUser(login);
 		try {
 			// create User for updating
-			user = model.createOrUpdate(user);
+			user = repository.createOrUpdate(user);
 			user.setCreationDt(null);
-			user = model.createOrUpdate(user);
-			fail("Null User creation date should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			user = repository.createOrUpdate(user);
+			fail("Null User creation date should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User creation date should have caused a ModelException!");
+			fail("Null User creation date should have caused a RepositoryExcpetion!");
 		} finally {
 			if (user != null && user.getId() != null) {
 				try {
@@ -531,13 +530,13 @@ public class TestUsers extends TestDBBase {
 	public void testRemoveUserNullUserId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.remove(null);
-			fail("Null User ID should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.remove(null);
+			fail("Null User ID should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User ID should have caused a ModelException!");
+			fail("Null User ID should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -545,13 +544,14 @@ public class TestUsers extends TestDBBase {
 	public void testRemoveUserInvalidUserId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.remove(invalidId);
-			fail("Invalid User ID should have caused a ModelException!");
-		} catch (RepositoryException me) {
-			// All good
+			boolean removed = repository.remove(invalidId);
+			assertTrue("No entity should have been removed", !removed);
+		} catch (RepositoryException re) {
+			printException(re);
+			fail("Invalid User ID should  NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
-			fail("Invalid User ID should have caused a ModelException!");
+			fail("Invalid User ID should NOT have caused a RepositoryExcpetion!");
 		}
 	}
 	
@@ -570,18 +570,18 @@ public class TestUsers extends TestDBBase {
 		int numRoles = 1;
 		try {
 			testUser = getUserWithRoles(login, numRoles);
-			testUser = model.createOrUpdate(testUser);
+			testUser = repository.createOrUpdate(testUser);
 
 			rolesToRemove = new ArrayList<>(testUser.getRoles());
 			
-			User user = model.find(testUser.getId());
+			User user = repository.find(testUser.getId());
 			assertNotNull("User was expected to be found: " + testUser, user);
 			assertEquals("Inserted and found users didn't match: ", testUser, user);
 			
 			user.setName(login+" with other name");
-			User updUser = model.createOrUpdate(user);
+			User updUser = repository.createOrUpdate(user);
 			// Update the value on local object to compare after DB update
-			user = model.find(testUser.getId());
+			user = repository.find(testUser.getId());
 			assertNotNull("User was expected to be found: " + user, user);
 			assertEquals("Updated and found users didn't match: ", updUser, user);
 			
@@ -593,35 +593,35 @@ public class TestUsers extends TestDBBase {
 				testRole = TestRoles.createRole(testRole);
 				updUser.getRoles().add(testRole);
 				rolesToRemove.add(testRole);
-			} catch (RepositoryException me) {
+			} catch (RepositoryException re) {
 				if (testRole != null && testRole.getId() != null) {
 					TestRoles.removeRole(testRole);
 				}
 			}
 			
-			updUser = model.createOrUpdate(updUser);
-			user = model.find(testUser.getId());
+			updUser = repository.createOrUpdate(updUser);
+			user = repository.find(testUser.getId());
 			assertNotNull("User was expected to be found: " + user, user);
 			assertEquals("Updated and found users didn't match: ", updUser, user);
 
 			// now test removing a role
 			updUser.getRoles().remove(0);
-			updUser = model.createOrUpdate(updUser);
-			user = model.find(testUser.getId());
+			updUser = repository.createOrUpdate(updUser);
+			user = repository.find(testUser.getId());
 			assertNotNull("User was expected to be found: " + user, user);
 			assertEquals("Updated and found users didn't match: ", updUser, user);
 			
 			// now test removing all roles
 			updUser.setRoles(null);
-			updUser = model.createOrUpdate(updUser);
-			user = model.find(testUser.getId());
+			updUser = repository.createOrUpdate(updUser);
+			user = repository.find(testUser.getId());
 			assertNotNull("User was expected to be found: " + user, user);
 			assertEquals("Updated and found users didn't match: ", updUser, user);
 			
 			// finally test removal of the entire user hierarchy		
-			model.remove(testUser.getId());
-			removed = true;
-			user = model.find(testUser.getId());
+			removed = repository.remove(testUser.getId());
+			assertTrue("Entity should have been removed!", removed);
+			user = repository.find(testUser.getId());
 			assertNull("User was expected NOT to be found: " + testUser, user);
 		} catch (Exception e) {
 			printException(e);
@@ -661,18 +661,18 @@ public class TestUsers extends TestDBBase {
 		int numRoles = 2;
 		try {
 			testUser = getUserWithRoles(login, numRoles);
-			testUser = model.createOrUpdate(testUser);
+			testUser = repository.createOrUpdate(testUser);
 
 			rolesToRemove = new ArrayList<>(testUser.getRoles());
 			
-			User user = model.find(testUser.getId());
+			User user = repository.find(testUser.getId());
 			assertNotNull("User was expected to be found: " + testUser, user);
 			assertEquals("Inserted and found users didn't match: ", testUser, user);
 			
 			user.setName(login+" with other name");
-			User updUser = model.createOrUpdate(user);
+			User updUser = repository.createOrUpdate(user);
 			// Update the value on local object to compare after DB update
-			user = model.find(testUser.getId());
+			user = repository.find(testUser.getId());
 			assertNotNull("User was expected to be found: " + user, user);
 			assertEquals("Updated and found users didn't match: ", updUser, user);
 			
@@ -684,28 +684,28 @@ public class TestUsers extends TestDBBase {
 				testRole = TestRoles.createRole(testRole);
 				updUser.getRoles().add(testRole);
 				rolesToRemove.add(testRole);
-			} catch (RepositoryException me) {
+			} catch (RepositoryException re) {
 				if (testRole != null && testRole.getId() != null) {
 					TestRoles.removeRole(testRole);
 				}
 			}
 			
-			updUser = model.createOrUpdate(updUser);
-			user = model.find(testUser.getId());
+			updUser = repository.createOrUpdate(updUser);
+			user = repository.find(testUser.getId());
 			assertNotNull("User was expected to be found: " + user, user);
 			assertEquals("Updated and found users didn't match: ", updUser, user);
 
 			// now test removing a role
 			updUser.getRoles().remove(0);
-			updUser = model.createOrUpdate(updUser);
-			user = model.find(testUser.getId());
+			updUser = repository.createOrUpdate(updUser);
+			user = repository.find(testUser.getId());
 			assertNotNull("User was expected to be found: " + user, user);
 			assertEquals("Updated and found users didn't match: ", updUser, user);
 			
 			// finally test removal of the entire user hierarchy (while still having roles)		
-			model.remove(testUser.getId());
-			removed = true;
-			user = model.find(testUser.getId());
+			removed = repository.remove(testUser.getId());
+			assertTrue("Entity should have been removed!", removed);
+			user = repository.find(testUser.getId());
 			assertNull("User was expected NOT to be found: " + testUser, user);
 		} catch (Exception e) {
 			printException(e);
@@ -736,4 +736,60 @@ public class TestUsers extends TestDBBase {
 		}
 	}
 	
+	@Test
+	public void testRoleInfoNotChangedOnUserUpdate() {
+		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
+		boolean removed = false;
+		List<Role> rolesToRemove = null;
+		int numRoles = 2;
+		try {
+			testUser = getUserWithRoles(login, numRoles);
+			testUser = repository.createOrUpdate(testUser);
+
+			rolesToRemove = new ArrayList<>(testUser.getRoles());
+			
+			User user = repository.find(testUser.getId());
+			assertNotNull("User was expected to be found: " + testUser, user);
+			assertEquals("Inserted and found users didn't match: ", testUser, user);
+
+			// just remove the first char from the name
+			user.getRoles().get(0).setName(user.getRoles().get(0).getName().substring(1));
+			
+			user = repository.createOrUpdate(user);
+			
+			// Update the value on local object to compare after DB update
+			user = repository.find(testUser.getId());
+
+			assertNotNull("User was expected to be found: " + user, user);
+			assertEquals("Found and initial users didn't match: ", user, testUser);
+			
+		} catch (Exception e) {
+			printException(e);
+			fail(e.getMessage());
+		} finally {
+			if (!removed && testUser != null && testUser.getId() != null) {
+				try {
+					removeUser(testUser);
+				} catch (Exception e) {
+					logger.error("In Finally Block: Failed to remove entity", e);
+				}
+			}
+			
+			if (testUser != null && testUser.getId() != null) {
+				Exception failure = null; 
+				for (Role role: rolesToRemove) {
+					try {
+						TestRoles.removeRole(role);
+					} catch (RepositoryException e) {
+						failure = e;
+						System.out.println("Error trying to remove test role " + role);
+						e.printStackTrace();
+					}
+				}
+				if (failure != null) 
+					fail("Error deleting test role: " + failure.getMessage());
+			}
+		}
+	}	
 }

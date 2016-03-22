@@ -16,8 +16,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
-import com.toptal.calories.resources.BaseEntity;
-
 /**
  * The persistent class for the meal database table.
  * 

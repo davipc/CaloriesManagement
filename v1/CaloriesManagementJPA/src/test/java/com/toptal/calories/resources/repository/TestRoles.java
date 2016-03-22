@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.toptal.calories.resources.RepositoryException;
 import com.toptal.calories.resources.TestDBBase;
 import com.toptal.calories.resources.entity.Role;
 
@@ -24,7 +23,7 @@ public class TestRoles extends TestDBBase {
 
 	public static Logger logger = LoggerFactory.getLogger(TestRoles.class);
 
-	protected static Roles model = new Roles();
+	protected static Roles repository = new RepositoryFactory().createRepository(Roles.class);
 
 	private static SimpleDateFormat sdf = new SimpleDateFormat("HHmmssSSS");
 	private static String name = sdf.format(new Date());
@@ -56,7 +55,7 @@ public class TestRoles extends TestDBBase {
 		if (testRole == null) {
 			throw new RepositoryException("Null test Role received for create!"); 
 		}
-		role = model.createOrUpdate(testRole);
+		role = repository.createOrUpdate(testRole);
 		if (role == null) {
 			throw new RepositoryException("Null Role returned from create!"); 
 		}
@@ -67,7 +66,7 @@ public class TestRoles extends TestDBBase {
 		if (testRole == null || testRole.getId() == null ) {
 			throw new RepositoryException("Null entity or Id received: " + testRole);
 		}
-		model.remove(testRole.getId());
+		repository.remove(testRole.getId());
 	}
 	
 	
@@ -87,22 +86,22 @@ public class TestRoles extends TestDBBase {
 		Role testRole = getRole(name);
 		boolean removed = false;
 		try {
-			testRole = model.createOrUpdate(testRole);
+			testRole = repository.createOrUpdate(testRole);
 
-			Role role = model.find(testRole.getId());
+			Role role = repository.find(testRole.getId());
 			assertNotNull("Customer was expected to be found: " + testRole, role);
 			assertEquals("Inserted and found roles didn't match: ", testRole, role);
 			
 			role.setName(otherName);
-			Role updRole = model.createOrUpdate(role);
+			Role updRole = repository.createOrUpdate(role);
 			// Update the value on local object to compare after DB update
-			role = model.find(testRole.getId());
+			role = repository.find(testRole.getId());
 			assertNotNull("Role was expected to be found: " + role, role);
 			assertEquals("Updated and found roles didn't match: ", updRole, role);
 			
-			model.remove(testRole.getId());
-			removed = true;
-			role = model.find(testRole.getId());
+			removed = repository.remove(testRole.getId());
+			assertTrue("Entity should have been removed!", removed);
+			role = repository.find(testRole.getId());
 			assertNull("Role was expected NOT to be found: " + testRole, role);
 		} catch (Exception e) {
 			printException(e);
@@ -126,17 +125,17 @@ public class TestRoles extends TestDBBase {
 		try {
 			// create test Role
 			testRole = getRole(name);
-			testRole = model.createOrUpdate(testRole);
+			testRole = repository.createOrUpdate(testRole);
 			// create a second Role
 			otherRole = getRole(otherName);
-			otherRole = model.createOrUpdate(otherRole);
+			otherRole = repository.createOrUpdate(otherRole);
 			
-			List<Role> Roles = model.findAll();
+			List<Role> Roles = repository.findAll();
 			assertNotNull("At least two roles should have been found", Roles);
 			assertTrue("At least two roles should have been found", Roles.size() >= 2);
 			assertTrue("Created roles were not found in the returned list", Roles.contains(testRole) && Roles.contains(otherRole));
-		} catch (RepositoryException me) {
-			fail("Get All Roles should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Get All Roles should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Get All Roles should NOT have caused an Exception!");
@@ -161,13 +160,13 @@ public class TestRoles extends TestDBBase {
 	public void testCreateRoleNullRole() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.createOrUpdate(null);
-			fail("Null Role should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(null);
+			fail("Null Role should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Role should have caused a ModelException!");
+			fail("Null Role should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -179,13 +178,13 @@ public class TestRoles extends TestDBBase {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
 			Role role = getRole(null);
-			model.createOrUpdate(role);
-			fail("Null Role Name should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(role);
+			fail("Null Role Name should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Role Name should have caused a ModelException!");
+			fail("Null Role Name should have caused a RepositoryExcpetion!");
 		}
 	}
 	
@@ -193,13 +192,13 @@ public class TestRoles extends TestDBBase {
 	public void testFindRoleNullRoleId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.find(null);
-			fail("Null Role ID should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.find(null);
+			fail("Null Role ID should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Role ID should have caused a ModelException!");
+			fail("Null Role ID should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -207,10 +206,10 @@ public class TestRoles extends TestDBBase {
 	public void testFindRoleInvalidRoleId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			Role role = (Role)model.find(invalidId);
+			Role role = (Role)repository.find(invalidId);
 			assertNull("No Roles should have been found for invalid Role ID", role);
-		} catch (RepositoryException me) {
-			fail("Invalid Role ID should NOT have caused a ModelException!");
+		} catch (RepositoryException re) {
+			fail("Invalid Role ID should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Invalid Role ID should NOT have caused an Exception!");
@@ -221,13 +220,13 @@ public class TestRoles extends TestDBBase {
 	public void testUpdateRoleNullRole() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.createOrUpdate(null);
-			fail("Null Role should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.createOrUpdate(null);
+			fail("Null Role should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Role should have caused a ModelException!");
+			fail("Null Role should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -237,15 +236,15 @@ public class TestRoles extends TestDBBase {
 		Role role = getRole(name);
 		try {
 			// create Role for updating
-			role = model.createOrUpdate(role);
+			role = repository.createOrUpdate(role);
 			role.setName(null);
-			role = model.createOrUpdate(role);
-			fail("Null Role name should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			role = repository.createOrUpdate(role);
+			fail("Null Role name should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Role name should have caused a ModelException!");
+			fail("Null Role name should have caused a RepositoryExcpetion!");
 		} finally {
 			if (role != null && role.getId() != null) {
 				try {
@@ -261,13 +260,13 @@ public class TestRoles extends TestDBBase {
 	public void testRemoveRoleNullRoleId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.remove(null);
-			fail("Null Role ID should have caused a ModelException!");
-		} catch (RepositoryException me) {
+			repository.remove(null);
+			fail("Null Role ID should have caused a RepositoryExcpetion!");
+		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Role ID should have caused a ModelException!");
+			fail("Null Role ID should have caused a RepositoryExcpetion!");
 		}
 	}
 
@@ -275,13 +274,14 @@ public class TestRoles extends TestDBBase {
 	public void testRemoveRoleInvalidRoleId() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			model.remove(invalidId);
-			fail("Invalid Role ID should have caused a ModelException!");
-		} catch (RepositoryException me) {
-			// All good
+			boolean removed = repository.remove(invalidId);
+			assertTrue("No entity should have been removed", !removed);
+		} catch (RepositoryException re) {
+			printException(re);
+			fail("Invalid Role ID should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
-			fail("Invalid Role ID should have caused a ModelException!");
+			fail("Invalid Role ID should NOT have caused a RepositoryExcpetion!");
 		}
 	}
 	

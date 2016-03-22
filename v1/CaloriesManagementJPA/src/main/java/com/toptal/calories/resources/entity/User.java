@@ -3,7 +3,6 @@ package com.toptal.calories.resources.entity;
 import java.sql.Timestamp;
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -19,8 +18,6 @@ import javax.persistence.ManyToMany;
 import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-
-import com.toptal.calories.resources.BaseEntity;
 
 
 /**
@@ -59,7 +56,7 @@ public class User extends BaseEntity {
 	private Gender gender;
 
 	//bi-directional many-to-many association to Role
-	@ManyToMany(fetch=FetchType.EAGER, cascade= {CascadeType.MERGE})
+	@ManyToMany(fetch=FetchType.EAGER)
 	@JoinTable(name="user_role" , 
 		foreignKey=@ForeignKey(name="user_id_FK"),
 		joinColumns={@JoinColumn(name="user_id", referencedColumnName = "id")}, 

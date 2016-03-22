@@ -8,8 +8,6 @@ import javax.persistence.Id;
 import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 
-import com.toptal.calories.resources.BaseEntity;
-
 
 /**
  * The persistent class for the role database table.
