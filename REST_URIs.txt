@@ -158,3 +158,21 @@ OK:
 
 Error: 
 
+
+
+
+
+TESTS ROLES:
+
+
+
+GET (all)
+
+http://localhost:8080/CaloriesWeb/api/v1/roles/
+
+Result: 
+
+OK: 200
+
+
+Error: 
