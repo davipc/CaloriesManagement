@@ -1586,60 +1586,86 @@ public class TestUsers extends TestDBBase {
 	/** Update keeping password if not provided									 **/
 	/******************************************************************************/
 	
-//	@Test
-//	public void testUpdateKeepPasswordIfNotProvidedNullUser() {
-//		logger.debug("Running " + getCurrentMethodName());
-//		try {
-//			repository.updateKeepPasswordIfNotProvided(null);
-//			fail("Null user should have caused a RepositoryException!");
-//		} catch (RepositoryException re) {
-//			// All good
-//		} catch (Exception e) {
-//			printException(e);
-//			fail("Null user should have caused a RepositoryException!");
-//		}
-//	}
-//
-//	@Test
-//	public void testUpdateKeepPasswordIfNotProvidedNullPassword() {
-//		logger.debug("Running " + getCurrentMethodName());
-//		try {
-//			//User changedUser
-//			
-//			User user = repository.updateKeepPasswordIfNotProvided(null);
-//			assertNotNull("The user should have been returned for null password", user);
-//		} catch (RepositoryException re) {
-//			fail("Invalid login should NOT have caused a RepositoryException!");
-//		} catch (Exception e) {
-//			printException(e);
-//			fail("Invalid login should NOT have caused a RepositoryException!");
-//		}
-//	}
-//	
-//	@Test
-//	public void testUpdateKeepPasswordIfNotProvidedNotNullPassword() {
-//		logger.debug("Running " + getCurrentMethodName());
-//		try {
-//			User user = repository.updateKeepPasswordIfNotProvided(testUser);
-//			assertNotNull("One user should have been returned for a valid login", user);
-//			assertEquals("Unexpected login found in returned user", testUser.getLogin(), user.getLogin());
-//		} catch (RepositoryException re) {
-//			fail("Invalid login should NOT have caused a RepositoryException!");
-//		} catch (Exception e) {
-//			printException(e);
-//			fail("Invalid login should NOT have caused a RepositoryException!");
-//		}
-//	}
-	
-	
-	
-	
-	
-	
-	public static void main(String[] args) throws Exception {
-		User user = repository.find(94);
-		System.out.println(user);
-
-		System.out.println("User Meals: " + (user != null ? user.getMeals() : "null"));
+	@Test
+	public void testUpdateKeepPasswordIfNotProvidedNullUser() {
+		logger.debug("Running " + getCurrentMethodName());
+		try {
+			repository.updateKeepPasswordIfNotProvided(null);
+			fail("Null user should have caused a RepositoryException!");
+		} catch (RepositoryException re) {
+			// All good
+		} catch (Exception e) {
+			printException(e);
+			fail("Null user should have caused a RepositoryException!");
+		}
 	}
+
+	@Test
+	public void testUpdateKeepPasswordIfNotProvidedNullPassword() {
+		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
+		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+
+			String password = testUser.getPassword();
+			
+			testUser.setPassword(null);
+			User user = repository.updateKeepPasswordIfNotProvided(testUser);
+			assertNotNull("The user should have been returned for null password", user);
+			assertEquals("Original password should not have been changed", password, user.getPassword());
+		} catch (RepositoryException re) {
+			fail("Null password should NOT have caused a RepositoryException!");
+		} catch (Exception e) {
+			printException(e);
+			fail("Null password should NOT have caused a RepositoryException!");
+		} finally {
+			try {
+				removeIfNotNull(testUser);
+			} catch (Exception e) {
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
+			}
+		}
+	}
+	
+	@Test
+	public void testUpdateKeepPasswordIfNotProvidedNotNullPassword() {
+		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
+		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			
+			String newPassword =  Long.toString(System.currentTimeMillis());
+			
+			testUser.setPassword(newPassword);
+			
+			User user = repository.updateKeepPasswordIfNotProvided(testUser);
+			assertNotNull("The user should have been returned for not null password", user);
+			assertEquals("Password should have been changed", newPassword, user.getPassword());
+		} catch (RepositoryException re) {
+			fail("Not null password should NOT have caused a RepositoryException!");
+		} catch (Exception e) {
+			printException(e);
+			fail("Not null password should NOT have caused a RepositoryException!");
+		} finally {
+			try {
+				removeIfNotNull(testUser);
+			} catch (Exception e) {
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
+			}
+		}
+	}
+	
+	
+//	public static void main(String[] args) throws Exception {
+//		User user = repository.find(94);
+//		System.out.println(user);
+//
+//		System.out.println("User Meals: " + (user != null ? user.getMeals() : "null"));
+//	}
 }

@@ -38,8 +38,8 @@ public class UserService {
 	private Users users = new RepositoryFactory().createRepository(Users.class, 1);
 
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
 	@Path("{id}")
+	@Produces(MediaType.APPLICATION_JSON)
 	public User getUser(@PathParam("id") int userId) throws RepositoryException {
 		logger.debug("Looking for user with ID " + userId); 
 		
@@ -71,22 +71,30 @@ public class UserService {
 	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void createUser(User user) throws RepositoryException {
+	@Produces(MediaType.APPLICATION_JSON)
+	public User createUser(User user) throws RepositoryException {
 		logger.debug("Persisting user " + user); 
 		
-		user = users.createOrUpdate(user);
+		// we will assume if password is provided it comes not encrypted
+		if (user.getPassword() != null)
+			user.setPassword(new EncryptionHelper().encrypt(user.getPassword()));
+
+		User userCreated = users.createOrUpdate(user);
 		
-		if (user == null) {
+		if (userCreated == null) {
 			logger.debug("Error persisting user " + user);
 	        throw new NotFoundException();
 	    }
 
 		logger.debug("Finished persisting " + user);
+		
+		return userCreated;
 	}
 
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void updateUser(User user) throws RepositoryException {
+	@Produces(MediaType.APPLICATION_JSON)
+	public User updateUser(User user) throws RepositoryException {
 		logger.debug("Updating user " + user); 
 		
 		// we will assume if password is provided it comes not encrypted
@@ -102,26 +110,32 @@ public class UserService {
 	    }
 
 		logger.debug("Finished updating " + user);
+		
+		return userUpdated;
 	}
 	
 	@DELETE
 	@Path("{id}")
-	public void deleteUser(@PathParam("id") int userId) throws RepositoryException {
+	@Produces(MediaType.APPLICATION_JSON)
+	public boolean deleteUser(@PathParam("id") int userId) throws RepositoryException {
 		logger.debug("Deleting user with ID " + userId); 
 		
+		boolean removed = false;
+		
 		try {
-			users.remove(userId);
+			removed = users.remove(userId);
 		} catch (RepositoryException re) {
 			logger.debug("Error deleting user with ID " + userId);
 			throw re;
 		}
-		
+
 		logger.debug("Finished deleting user with ID " + userId);
+		return removed;
 	}
 	
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
 	@Path("{userId}/meals")
+	@Produces(MediaType.APPLICATION_JSON)
 	public List<Meal> getMealsFromUser(@PathParam("userId") int userId, 
 										@QueryParam("fromDate") String fromDate, @QueryParam("toDate") String  toDate, 
 										@QueryParam("fromTime") String fromTime, @QueryParam("toTime") String toTime) 
@@ -224,6 +238,6 @@ public class UserService {
 		
 		logger.info("User " + user.getLogin() + " authentication "  + (authenticated ? "succeeded!" : "failed!" ));
 		
-		return user;
+		return foundUser;
 	}
 }

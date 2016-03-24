@@ -1,8 +1,142 @@
+TESTS USER:
+
+
+
+
+GET (id)
+
+http://localhost:8080/CaloriesWeb/api/v1/users/1
+
+Result: {"id":1,"login":"dcavalca","password":"XohImNooBHFR0OVvjcYpJ3NgPQ1qq73WKhHvch0VQtg=","name":"Davi Cavalcanti","gender":"M","dailyCalories":2000,"roles":[{"id":1,"name":"Admin"},{"id":2,"name":"Manager"},{"id":3,"name":"Default"}],"creationDt":1458518400000}
+
+OK: 200
+
+Not found: 404
+
+Error: 500
+
+
+
+
+
+GET (all)
+
+http://localhost:8080/CaloriesWeb/api/v1/users/
+
+Result: [{"id":1,"login":"dcavalca","password":"XohImNooBHFR0OVvjcYpJ3NgPQ1qq73WKhHvch0VQtg=","name":"Davi Cavalcanti","gender":"M","dailyCalories":2000,"roles":[{"id":1,"name":"Admin"},{"id":2,"name":"Manager"},{"id":3,"name":"Default"}],"creationDt":1458518400000},{"id":2,"login":"mcavalca","password":"t+lL5RPpboxFzSPRYideWhLr3pEApCXE683X+k3NiXw=","name":"Melissa Cavalcanti","gender":"F","dailyCalories":2000,"roles":[{"id":1,"name":"Admin"},{"id":3,"name":"Default"}],"creationDt":1458604800000}]
+
+OK: 200
+
+Not found: 200
+
+Error: 500
+
+
+
+
+POST - ID not provided!
+
+http://localhost:8080/CaloriesWeb/api/v1/users/
+
+{"login":"dcavalca","password":"password","name":"Davi Cavalcanti","gender":"M","dailyCalories":2000,"roles":[{"id":1},{"id":2},{"id":3}],"creationDt":"2016-03-21"}
+
+OK: 204
+
+{"id":1,"login":"dcavalca","password":"XohImNooBHFR0OVvjcYpJ3NgPQ1qq73WKhHvch0VQtg=","name":"Davi Cavalcanti","gender":"M","dailyCalories":2000,"roles":[{"id":1,"name":"Admin"},{"id":2,"name":"Manager"},{"id":3,"name":"Default"}],"creationDt":1458518400000}
+
+Error: 500
+
+
+
+
+PUT - with Password
+
+http://localhost:8080/CaloriesWeb/api/v1/users/
+{"id":1,"login":"dcavalca","password":"password2","name":"Davi Cavalcanti","gender":"M","dailyCalories":2501,"roles":[{"id":2},{"id":3}],"creationDt":"2016-03-21"}
+
+OK: 204
+
+{"id":1,"login":"dcavalca","password":"bPYV1byqx3g1Ko8fM2DSPwLzTsGC4lmJf9bOSF14cNQ=","name":"Davi Cavalcanti","gender":"M","dailyCalories":2501,"roles":[{"id":2,"name":"Manager"},{"id":3,"name":"Default"}],"creationDt":1458518400000}
+
+Error: 500
+
+
+
+
+PUT - No Password
+
+http://localhost:8080/CaloriesWeb/api/v1/users/
+{"id":1,"login":"dcavalca","name":"Davi P Cavalcanti","gender":"M","dailyCalories":2409,"roles":[{"id":1}],"creationDt":"2016-03-21"}
+
+OK: 204
+
+{"id":1,"login":"dcavalca","password":"bPYV1byqx3g1Ko8fM2DSPwLzTsGC4lmJf9bOSF14cNQ=","name":"Davi P Cavalcanti","gender":"M","dailyCalories":2409,"roles":[{"id":1,"name":"Admin"}],"creationDt":1458518400000}
+
+Error: 500
+
+
+
+DELETE
+
+http://localhost:8080/CaloriesWeb/api/v1/users/1
+
+OK: 204
+
+if found: true
+if not found: false
+
+Error: 500
+
+
+
+GET - meals from user
+
+http://localhost:8080/CaloriesWeb/api/v1/users/1305/meals
+
+OK: 200
+
+Empty: 200 ([])
+
+Error: 
+
+
+
+
+GET - meals from user in date and time range 
+
+http://localhost:8080/CaloriesWeb/api/v1/users/1305/meals?fromDate=2016-01-23&toDate=2016-01-23&fromTime=09:00&toTime=18:44
+
+OK: 
+Error:
+
+
+
+
+
+
+
+POST - authenticate
+
+http://localhost:8080/CaloriesWeb/api/v1/users/auth
+{"login":"dcavalca","password":"password"}
+
+OK: 200
+{"id":1,"login":"dcavalca","password":"XohImNooBHFR0OVvjcYpJ3NgPQ1qq73WKhHvch0VQtg=","name":"Davi Cavalcanti","gender":"M","dailyCalories":2000,"roles":[{"id":1,"name":"Admin"},{"id":2,"name":"Manager"},{"id":3,"name":"Default"}],"creationDt":1458518400000}
+
+
+Login not found: 404
+Bad password: 401
+
+
+
+
+
+
 TESTS MEAL:
 
 GET (id)
 
-http://localhost:8080/CaloriesWeb/api/v1/meals/123108
+http://localhost:8080/CaloriesWeb/api/v1/meals/1
 
 Result: {"calories":500,"description":"Test description","id":90492,"mealDate":1453341600000,"mealTime":43200000,"userId":980}
 
@@ -15,11 +149,11 @@ Error:
 POST (create) - ID not provided!
 
 http://localhost:8080/CaloriesWeb/api/v1/meals/
-{"calories":580,"description":"REST meal description","mealDate":1451520147746,"mealTime":1458520847146,"user":{"Id":980}}
+{"user":{"id":2},"mealDate":1453520147746,"mealTime":1458521847146,"description":"REST meal description","calories":580}
 
 OK: 204
 
-{"calories":580,"description":"REST meal description","mealDate":1451520147746,"mealTime":1458520847146,"userId":1}
+{"id":3,"user":{"id":2,"login":"dcavalca","password":"XohImNooBHFR0OVvjcYpJ3NgPQ1qq73WKhHvch0VQtg=","name":"Davi Cavalcanti","gender":"M","dailyCalories":2000,"roles":[{"id":1,"name":"Admin"},{"id":2,"name":"Manager"},{"id":3,"name":"Default"}],"creationDt":1458518400000},"mealDate":1453520147746,"mealTime":1458521847146,"description":"REST meal description","calories":580}
 
 Error (bad data): 500
 
@@ -51,128 +185,19 @@ Invalid ID: 204
 
 
 
-TESTS USER:
-
-
-
-
-GET (id)
-
-http://localhost:8080/CaloriesWeb/api/v1/users/958
-
-Result: {"creationDt":"2016-03-21 20:48:53.661","dailyCalories":2000,"gender":"M","id":958,"login":"204853659","name":"204853659 with other name","password":"456","roles":[{"id":394,"name":"r14853659"},{"id":395,"name":"r24853659"},{"id":396,"name":"r34853659"}]}
-
-OK: 200
-
-
-Error: 
-
-
-
-
-
-GET (all)
-
-http://localhost:8080/CaloriesWeb/api/v1/users/
-
-Result: [{"creationDt":"2016-03-21 20:48:53.661","dailyCalories":2000,"gender":"M","id":958,"login":"204853659","name":"204853659 with other name","password":"456","roles":[{"id":394,"name":"r14853659"},{"id":395,"name":"r24853659"},{"id":396,"name":"r34853659"}]},{"creationDt":"2016-03-21 20:56:26.568","dailyCalories":2000,"gender":"M","id":979,"login":"205626566","name":"205626566 with other name","password":"456","roles":[{"id":408,"name":"r25626566"},{"id":409,"name":"r35626566"}]},{"creationDt":"2016-03-21 21:02:46.919","dailyCalories":1500,"gender":"F","id":980,"login":"210246905","name":"210246905 is my name","password":"123","roles":[]},{"creationDt":"2016-03-21 21:02:46.971","dailyCalories":1500,"gender":"F","id":981,"login":"2_0246905","name":"2_0246905 is my name","password":"123","roles":[]},{"creationDt":"2016-03-21 21:02:46.976","dailyCalories":1500,"gender":"F","id":982,"login":"3_0246905","name":"3_0246905 is my name","password":"123","roles":[]}]
-
-OK: 200
-
-
-Error: 
-
-
-
-
-POST - ID not provided!
-
-http://localhost:8080/CaloriesWeb/api/v1/users/
-
-{"creationDt":"2016-03-21 21:21:21.221","dailyCalories":1000,"gender":"F","login":"204853600","name":"204853600 with other name","password":"789","roles":[{"id":394,"name":"r14853659"},{"id":395,"name":"r24853659"},{"id":396,"name":"r34853659"}]}
-
-OK: 204
-
-
-Error: 
-
-
-
-
-PUT
-
-http://localhost:8080/CaloriesWeb/api/v1/users/
-{"creationDt":"2016-03-21 23:23:23.223","dailyCalories":1000,"gender":"M","id":983,"login":"204853600","name":"204853600 with other name","password":"789","roles":[{"id":394,"name":"r14853659"},{"id":395,"name":"r24853659"},{"id":396,"name":"changed"}]}
-
-OK: 204
-
-
-Error: 
-
-
-
-
-DELETE
-
-http://localhost:8080/CaloriesWeb/api/v1/users/983
-
-OK: 204
-
-
-Error: 
-
-
-
-GET - meals from user
-
-http://localhost:8080/CaloriesWeb/api/v1/users/1305/meals
-
-OK: 200
-
-Empty: 200 ([])
-
-Error: 
-
-
-
-
-GET - meals from user in date and time range 
-
-http://localhost:8080/CaloriesWeb/api/v1/users/1305/meals?fromDate=2016-01-23&toDate=2016-01-23&fromTime=09:00&toTime=18:44
-
-OK: 
-Error:
-
-
-
-
-
-
-
-GET - authenticate (PENDING)
-
-http://localhost:8080/CaloriesWeb/api/v1/users/
-
-OK: 
-
-
-Error: 
-
-
-
-
-
 TESTS ROLES:
-
 
 
 GET (all)
 
 http://localhost:8080/CaloriesWeb/api/v1/roles/
 
-Result: 
+Result: [{"id":1,"name":"Admin"},{"id":2,"name":"Manager"},{"id":3,"name":"Default"}]
 
 OK: 200
 
-
 Error: 
+
+
+
+
