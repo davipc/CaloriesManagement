@@ -12,6 +12,8 @@ import java.util.regex.Pattern;
 public class TestDBBase {
 	public static Pattern CAUSE_BY_PATTERN = Pattern.compile("Caused by: .*");
 	
+	public static long CURRENT_TEST_ID = System.currentTimeMillis(); 
+	
 	public String getCurrentMethodName() {
 		return Thread.currentThread().getStackTrace()[2].getMethodName();	
 	}

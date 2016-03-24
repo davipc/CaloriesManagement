@@ -22,7 +22,6 @@ import javax.persistence.UniqueConstraint;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 /**
@@ -46,7 +45,7 @@ import javax.xml.bind.annotation.XmlType;
 
 
 @XmlRootElement(name = "meal")
-@XmlType(propOrder = {"id","mealDate","mealTime","description", "calories"})
+@XmlType(propOrder = {"id", "user", "mealDate","mealTime","description", "calories"})
 @XmlAccessorType(XmlAccessType.FIELD)
 
 @Entity
@@ -69,9 +68,7 @@ public class Meal extends BaseEntity {
 	@Column(name = "id", updatable=false, nullable=false)	
 	private Integer id;
 
-	// makes sure this is not present in the generated JSON
-	@XmlTransient
-	@ManyToOne(fetch=FetchType.LAZY)
+	@ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="user_id", nullable=false, foreignKey = @ForeignKey(name = "Meal_User_FK"))
     private User user;
 	
@@ -83,7 +80,7 @@ public class Meal extends BaseEntity {
 	@Temporal(TemporalType.TIME)
 	private Date mealTime;
 
-	@Column(nullable=false)
+	@Column(nullable=false, length=200)
 	private String description;
 
 	@Column(nullable=false)

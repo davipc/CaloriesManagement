@@ -39,14 +39,13 @@
 	</logger>
 
 	<logger name="com.toptal.calories.rest" level="DEBUG" >
-		<appender-ref ref="STDOUT" />
+		<!-- <appender-ref ref="STDOUT" /> -->
 	</logger>
 
 	<logger name="org.glassfish.jersey" level="DEBUG" >
-		<appender-ref ref="STDOUT" />
 	</logger>
 
 	<root level="DEBUG">
-		<!-- <appender-ref ref="STDOUT" /> -->
+		<appender-ref ref="STDOUT" />
 	</root>
 </configuration>

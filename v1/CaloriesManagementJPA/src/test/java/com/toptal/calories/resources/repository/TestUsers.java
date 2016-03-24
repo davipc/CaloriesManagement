@@ -15,7 +15,6 @@ import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,13 +34,10 @@ public class TestUsers extends TestDBBase {
 	private static SimpleDateFormat sdf = new SimpleDateFormat("HHmmssSSS");
 	private static String login = sdf.format(new Date());
 	private static String otherLogin = "2_" + login.substring(2);
-
-	private static User testUser;
-	private static User otherTestUser;
 	private static String thirdLogin = "3_" + login.substring(2);
-	private static User thirdTestUser;
 	
 	private static int invalidId = -1;
+	private static String invalidLogin = "-1";
 	
 	SimpleDateFormat dateOnly = new SimpleDateFormat("yyyy-MM-dd");
 	Date mealDate1;
@@ -50,24 +46,9 @@ public class TestUsers extends TestDBBase {
 	Date mealDate2;
 	Date mealTime2;
 
+	private List<User> dateTimeRangesTestUsers = new ArrayList<>();
 	private List<Meal> dateTimeRangesTestMeals = new ArrayList<>();
 	
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		logger.debug("Creating test users to be used by all tests...");
-		
-		testUser = TestUsers.getUser(login);
-		testUser = TestUsers.createUser(testUser);
-		
-		otherTestUser = TestUsers.getUser(otherLogin);
-		otherTestUser = TestUsers.createUser(otherTestUser);
-
-		thirdTestUser = TestUsers.getUser(thirdLogin);
-		thirdTestUser = TestUsers.createUser(thirdTestUser);
-		
-		logger.debug("Finished creating test users to be used by all tests");
-	}
-
 	@Before
 	public void setUp() throws Exception {
 		SimpleDateFormat dateOnly = new SimpleDateFormat("yyyy-MM-dd");
@@ -83,15 +64,10 @@ public class TestUsers extends TestDBBase {
 	}
 
 	@AfterClass
-	public static void afterClass() throws Exception {
-		logger.debug("Deleting test users after all tests done...");
-		
-		TestUsers.removeUser(testUser);
-		TestUsers.removeUser(otherTestUser);
-		TestUsers.removeUser(thirdTestUser);
-
-		logger.debug("Finished deleting test users after all tests done");
+	public void tearDownClass() throws Exception {
+		logger.warn("Current Test: " + new Date(TestDBBase.CURRENT_TEST_ID));
 	}
+	
 	
 	
 	/******************************************************************************/
@@ -160,6 +136,15 @@ public class TestUsers extends TestDBBase {
 		repository.remove(testUser.getId());
 	}
 	
+	public static void removeIfNotNull(User ...users) 
+	throws RepositoryException {
+		for (User user: users) {
+			if (user != null && user.getId() != null) {
+				removeUser(user);
+			}
+		}
+	}
+	
 	
 	/******************************************************************************/
 	/******************************************************************************/
@@ -198,11 +183,12 @@ public class TestUsers extends TestDBBase {
 			printException(e);
 			fail(e.getMessage());
 		} finally {
-			if (!removed && testUser != null && testUser.getId() != null) {
+			if (!removed) {
 				try {
-					repository.remove(testUser.getId());
+					removeIfNotNull(testUser);
 				} catch (Exception e) {
-					logger.error("In Finally Block: Failed to remove entity", e);
+					printException(e);
+					logger.error("In Finally Block: Failed to remove entity");
 				}
 			}
 		}
@@ -226,24 +212,16 @@ public class TestUsers extends TestDBBase {
 			assertTrue("At least two users should have been found", Users.size() >= 2);
 			assertTrue("Created users were not found in the returned list", Users.contains(testUser) && Users.contains(otherUser));
 		} catch (RepositoryException re) {
-			fail("Get All Users should NOT have caused a RepositoryExcpetion!");
+			fail("Get All Users should NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Get All Users should NOT have caused an Exception!");
 		} finally {
 			try {
-				if (testUser != null && testUser.getId() != null) {
-					removeUser(testUser);
-				}
+				removeIfNotNull(testUser, otherUser);
 			} catch (Exception e) {
-				logger.error("In Finally Block: Failed to remove entity", e);
-			}
-			try {
-				if (otherUser != null && otherUser.getId() != null) {
-					removeUser(otherUser);
-				}
-			} catch (Exception e) {
-				logger.error("In Finally Block: Failed to remove entity", e);
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entity");
 			}
 		}
 	}
@@ -256,12 +234,12 @@ public class TestUsers extends TestDBBase {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
 			repository.createOrUpdate(null);
-			fail("Null User should have caused a RepositoryExcpetion!");
+			fail("Null User should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User should have caused a RepositoryExcpetion!");
+			fail("Null User should have caused a RepositoryException!");
 		}
 	}
 
@@ -274,12 +252,12 @@ public class TestUsers extends TestDBBase {
 		try {
 			User user = getUser(null);
 			repository.createOrUpdate(user);
-			fail("Null User Login should have caused a RepositoryExcpetion!");
+			fail("Null User Login should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User Login should have caused a RepositoryExcpetion!");
+			fail("Null User Login should have caused a RepositoryException!");
 		}
 	}
 
@@ -293,12 +271,12 @@ public class TestUsers extends TestDBBase {
 			User user = getUser(login);
 			user.setName(null);
 			repository.createOrUpdate(user);
-			fail("Null User Name should have caused a RepositoryExcpetion!");
+			fail("Null User Name should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User Name should have caused a RepositoryExcpetion!");
+			fail("Null User Name should have caused a RepositoryException!");
 		}
 	}
 	
@@ -312,12 +290,12 @@ public class TestUsers extends TestDBBase {
 			User user = getUser(login);
 			user.setPassword(null);
 			repository.createOrUpdate(user);
-			fail("Null User Password should have caused a RepositoryExcpetion!");
+			fail("Null User Password should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User Password should have caused a RepositoryExcpetion!");
+			fail("Null User Password should have caused a RepositoryException!");
 		}
 	}
 
@@ -331,12 +309,12 @@ public class TestUsers extends TestDBBase {
 			User user = getUser(login);
 			user.setGender(null);
 			repository.createOrUpdate(user);
-			fail("Null User Gender should have caused a RepositoryExcpetion!");
+			fail("Null User Gender should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User Gender should have caused a RepositoryExcpetion!");
+			fail("Null User Gender should have caused a RepositoryException!");
 		}
 	}
 
@@ -350,12 +328,12 @@ public class TestUsers extends TestDBBase {
 			User user = getUser(login);
 			user.setDailyCalories(null);
 			repository.createOrUpdate(user);
-			fail("Null User daily calories should have caused a RepositoryExcpetion!");
+			fail("Null User daily calories should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User daily calories should have caused a RepositoryExcpetion!");
+			fail("Null User daily calories should have caused a RepositoryException!");
 		}
 	}
 
@@ -369,12 +347,12 @@ public class TestUsers extends TestDBBase {
 			User user = getUser(login);
 			user.setCreationDt(null);
 			repository.createOrUpdate(user);
-			fail("Null User creation date should have caused a RepositoryExcpetion!");
+			fail("Null User creation date should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User creation date should have caused a RepositoryExcpetion!");
+			fail("Null User creation date should have caused a RepositoryException!");
 		}
 	}
 
@@ -383,12 +361,12 @@ public class TestUsers extends TestDBBase {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
 			repository.find(null);
-			fail("Null User ID should have caused a RepositoryExcpetion!");
+			fail("Null User ID should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User ID should have caused a RepositoryExcpetion!");
+			fail("Null User ID should have caused a RepositoryException!");
 		}
 	}
 
@@ -399,7 +377,7 @@ public class TestUsers extends TestDBBase {
 			User user = (User)repository.find(invalidId);
 			assertNull("No Users should have been found for invalid User ID", user);
 		} catch (RepositoryException re) {
-			fail("Invalid User ID should NOT have caused a RepositoryExcpetion!");
+			fail("Invalid User ID should NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Invalid User ID should NOT have caused an Exception!");
@@ -411,12 +389,12 @@ public class TestUsers extends TestDBBase {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
 			repository.createOrUpdate(null);
-			fail("Null User should have caused a RepositoryExcpetion!");
+			fail("Null User should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User should have caused a RepositoryExcpetion!");
+			fail("Null User should have caused a RepositoryException!");
 		}
 	}
 
@@ -429,19 +407,18 @@ public class TestUsers extends TestDBBase {
 			user = repository.createOrUpdate(user);
 			user.setLogin(null);
 			user = repository.createOrUpdate(user);
-			fail("Null User ID should have caused a RepositoryExcpetion!");
+			fail("Null User ID should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User ID should have caused a RepositoryExcpetion!");
+			fail("Null User ID should have caused a RepositoryException!");
 		} finally {
-			if (user != null && user.getId() != null) {
-				try {
-					removeUser(user);
-				} catch (Exception e) {
-					printException(e);
-				}
+			try {
+				removeIfNotNull(user);
+			} catch (Exception e) {
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entity");
 			}
 		}
 	}
@@ -455,19 +432,18 @@ public class TestUsers extends TestDBBase {
 			user = repository.createOrUpdate(user);
 			user.setName(null);
 			user = repository.createOrUpdate(user);
-			fail("Null User name should have caused a RepositoryExcpetion!");
+			fail("Null User name should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User name should have caused a RepositoryExcpetion!");
+			fail("Null User name should have caused a RepositoryException!");
 		} finally {
-			if (user != null && user.getId() != null) {
-				try {
-					removeUser(user);
-				} catch (Exception e) {
-					printException(e);
-				}
+			try {
+				removeIfNotNull(user);
+			} catch (Exception e) {
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entity");
 			}
 		}
 	}
@@ -481,19 +457,17 @@ public class TestUsers extends TestDBBase {
 			user = repository.createOrUpdate(user);
 			user.setPassword(null);
 			user = repository.createOrUpdate(user);
-			fail("Null User Password should have caused a RepositoryExcpetion!");
+			fail("Null User Password should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User Password should have caused a RepositoryExcpetion!");
+			fail("Null User Password should have caused a RepositoryException!");
 		} finally {
-			if (user != null && user.getId() != null) {
-				try {
-					removeUser(user);
-				} catch (Exception e) {
-					printException(e);
-				}
+			try {
+				removeIfNotNull(user);
+			} catch (Exception e) {
+				printException(e);
 			}
 		}
 	}
@@ -507,19 +481,17 @@ public class TestUsers extends TestDBBase {
 			user = repository.createOrUpdate(user);
 			user.setGender(null);
 			user = repository.createOrUpdate(user);
-			fail("Null User gender should have caused a RepositoryExcpetion!");
+			fail("Null User gender should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User gender should have caused a RepositoryExcpetion!");
+			fail("Null User gender should have caused a RepositoryException!");
 		} finally {
-			if (user != null && user.getId() != null) {
-				try {
-					removeUser(user);
-				} catch (Exception e) {
-					printException(e);
-				}
+			try {
+				removeIfNotNull(user);
+			} catch (Exception e) {
+				printException(e);
 			}
 		}
 	}
@@ -533,19 +505,17 @@ public class TestUsers extends TestDBBase {
 			user = repository.createOrUpdate(user);
 			user.setDailyCalories(null);
 			user = repository.createOrUpdate(user);
-			fail("Null User daily calories should have caused a RepositoryExcpetion!");
+			fail("Null User daily calories should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User daily calories should have caused a RepositoryExcpetion!");
+			fail("Null User daily calories should have caused a RepositoryException!");
 		} finally {
-			if (user != null && user.getId() != null) {
-				try {
-					removeUser(user);
-				} catch (Exception e) {
-					printException(e);
-				}
+			try {
+				removeIfNotNull(user);
+			} catch (Exception e) {
+				printException(e);
 			}
 		}
 	}
@@ -559,19 +529,17 @@ public class TestUsers extends TestDBBase {
 			user = repository.createOrUpdate(user);
 			user.setCreationDt(null);
 			user = repository.createOrUpdate(user);
-			fail("Null User creation date should have caused a RepositoryExcpetion!");
+			fail("Null User creation date should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User creation date should have caused a RepositoryExcpetion!");
+			fail("Null User creation date should have caused a RepositoryException!");
 		} finally {
-			if (user != null && user.getId() != null) {
-				try {
-					removeUser(user);
-				} catch (Exception e) {
-					printException(e);
-				}
+			try {
+				removeIfNotNull(user);
+			} catch (Exception e) {
+				printException(e);
 			}
 		}
 	}
@@ -582,12 +550,12 @@ public class TestUsers extends TestDBBase {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
 			repository.remove(null);
-			fail("Null User ID should have caused a RepositoryExcpetion!");
+			fail("Null User ID should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User ID should have caused a RepositoryExcpetion!");
+			fail("Null User ID should have caused a RepositoryException!");
 		}
 	}
 
@@ -599,10 +567,10 @@ public class TestUsers extends TestDBBase {
 			assertTrue("No entity should have been removed", !removed);
 		} catch (RepositoryException re) {
 			printException(re);
-			fail("Invalid User ID should  NOT have caused a RepositoryExcpetion!");
+			fail("Invalid User ID should  NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
-			fail("Invalid User ID should NOT have caused a RepositoryExcpetion!");
+			fail("Invalid User ID should NOT have caused a RepositoryException!");
 		}
 	}
 	
@@ -678,27 +646,22 @@ public class TestUsers extends TestDBBase {
 			printException(e);
 			fail(e.getMessage());
 		} finally {
-			if (!removed && testUser != null && testUser.getId() != null) {
+			if (!removed) {
 				try {
-					removeUser(testUser);
+					removeIfNotNull(testUser);
 				} catch (Exception e) {
-					logger.error("In Finally Block: Failed to remove entity", e);
+					printException(e);
+					logger.error("In Finally Block: Failed to remove entity");
 				}
 			}
 			
-			if (testUser != null && testUser.getId() != null) {
-				Exception failure = null;
-				for (Role role: rolesToRemove) {
-					try {
-						TestRoles.removeRole(role);
-					} catch (RepositoryException e) {
-						failure = e;
-						System.out.println("Error trying to remove test role " + role);
-						e.printStackTrace();
-					}
+			if (rolesToRemove != null) {
+				try {
+					TestRoles.removeIfNotNull(rolesToRemove.toArray(new Role[]{}));
+				} catch (Exception e) {
+					printException(e);
+					logger.error("In Finally Block: Failed to remove entity");
 				}
-				if (failure != null) 
-					fail("Error deleting test role: " + failure.getMessage());
 			}
 		}
 	}
@@ -762,27 +725,22 @@ public class TestUsers extends TestDBBase {
 			printException(e);
 			fail(e.getMessage());
 		} finally {
-			if (!removed && testUser != null && testUser.getId() != null) {
+			if (!removed) {
 				try {
-					removeUser(testUser);
+					removeIfNotNull(testUser);
 				} catch (Exception e) {
-					logger.error("In Finally Block: Failed to remove entity", e);
+					printException(e);
+					logger.error("In Finally Block: Failed to remove entity");
 				}
 			}
 			
-			if (testUser != null && testUser.getId() != null) {
-				Exception failure = null; 
-				for (Role role: rolesToRemove) {
-					try {
-						TestRoles.removeRole(role);
-					} catch (RepositoryException e) {
-						failure = e;
-						System.out.println("Error trying to remove test role " + role);
-						e.printStackTrace();
-					}
+			if (rolesToRemove != null) {
+				try {
+					TestRoles.removeIfNotNull(rolesToRemove.toArray(new Role[]{}));
+				} catch (Exception e) {
+					printException(e);
+					logger.error("In Finally Block: Failed to remove entity");
 				}
-				if (failure != null) 
-					fail("Error deleting test role: " + failure.getMessage());
 			}
 		}
 	}
@@ -814,35 +772,80 @@ public class TestUsers extends TestDBBase {
 
 			assertNotNull("User was expected to be found: " + user, user);
 			assertEquals("Found and initial users didn't match: ", user, testUser);
-			
 		} catch (Exception e) {
 			printException(e);
 			fail(e.getMessage());
 		} finally {
-			if (!removed && testUser != null && testUser.getId() != null) {
+			if (!removed) {
 				try {
-					removeUser(testUser);
+					removeIfNotNull(testUser);
 				} catch (Exception e) {
-					logger.error("In Finally Block: Failed to remove entity", e);
+					printException(e);
+					logger.error("In Finally Block: Failed to remove entity");
 				}
 			}
 			
-			if (testUser != null && testUser.getId() != null) {
-				Exception failure = null; 
-				for (Role role: rolesToRemove) {
-					try {
-						TestRoles.removeRole(role);
-					} catch (RepositoryException e) {
-						failure = e;
-						System.out.println("Error trying to remove test role " + role);
-						e.printStackTrace();
-					}
+			if (rolesToRemove != null) {
+				try {
+					TestRoles.removeIfNotNull(rolesToRemove.toArray(new Role[]{}));
+				} catch (Exception e) {
+					printException(e);
+					logger.error("In Finally Block: Failed to remove entity");
 				}
-				if (failure != null) 
-					fail("Error deleting test role: " + failure.getMessage());
 			}
 		}
 	}	
+
+//	@Test
+//	public void testRoleNotAddedOnUserUpdate() {
+//		logger.debug("Running " + getCurrentMethodName());
+//		User testUser = null;
+//		boolean removed = false;
+//		List<Role> rolesToRemove = null;
+//		int numRoles = 2;
+//		try {
+//			testUser = getUserWithRoles(login, numRoles);
+//			testUser = repository.createOrUpdate(testUser);
+//
+//			rolesToRemove = new ArrayList<>(testUser.getRoles());
+//			
+//			User user = repository.find(testUser.getId());
+//			assertNotNull("User was expected to be found: " + testUser, user);
+//			assertEquals("Inserted and found users didn't match: ", testUser, user);
+//
+//			Role roleNotInDB = TestRoles.getRole("SHOULDNT BE HERE");
+//			user.getRoles().add(roleNotInDB);
+//			
+//			user = repository.createOrUpdate(user);
+//			
+//			// Update the value on local object to compare after DB update
+//			user = repository.find(testUser.getId());
+//
+//			assertNotNull("User was expected to be found: " + user, user);
+//			assertEquals("Found and initial users didn't match: ", user, testUser);
+//		} catch (Exception e) {
+//			printException(e);
+//			fail(e.getMessage());
+//		} finally {
+//			if (!removed) {
+//				try {
+//					removeIfNotNull(testUser);
+//				} catch (Exception e) {
+//					printException(e);
+//					logger.error("In Finally Block: Failed to remove entity");
+//				}
+//			}
+//			
+//			if (rolesToRemove != null) {
+//				try {
+//					TestRoles.removeIfNotNull(rolesToRemove.toArray(new Role[]{}));
+//				} catch (Exception e) {
+//					printException(e);
+//					logger.error("In Finally Block: Failed to remove entity");
+//				}
+//			}
+//		}
+//	}	
 	
 	/******************************************************************************/
 	/** Find user meals tests                                                    **/
@@ -853,23 +856,32 @@ public class TestUsers extends TestDBBase {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
 			repository.find(null);
-			fail("Null User ID should have caused a RepositoryExcpetion!");
+			fail("Null User ID should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User ID should have caused a RepositoryExcpetion!");
+			fail("Null User ID should have caused a RepositoryException!");
 		}
 	}
 	
 	@Test
 	public void testFindUserMealsInvalidUser() {
 		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
+		User otherTestUser = null;
+		
 		Meal testMeal = null;
 		Meal secondMeal = null;
 		Meal thirdMeal = null;
 		Meal fourthMeal = null;
 		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			otherTestUser = TestUsers.getUser(otherLogin);
+			otherTestUser = TestUsers.createUser(otherTestUser);
+
 			// create test Meal
 			testMeal = TestMeals.getMeal(testUser, mealDate1, mealTime1);
 			testMeal = TestMeals.createMeal(testMeal);
@@ -887,26 +899,17 @@ public class TestUsers extends TestDBBase {
 			User user = repository.find(invalidId);
 			assertNull("User should be null", user);
 		} catch (RepositoryException re) {
-			fail("Find User meals should NOT have caused a RepositoryExcpetion!");
+			fail("Find User meals should NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals should NOT have caused an Exception!");
 		} finally {
 			try {
-				if (testMeal != null) {
-					TestMeals.removeMeal(testMeal);
-				}
-				if (secondMeal != null) {
-					TestMeals.removeMeal(secondMeal);
-				}
-				if (thirdMeal != null) {
-					TestMeals.removeMeal(thirdMeal);
-				}
-				if (fourthMeal != null) {
-					TestMeals.removeMeal(fourthMeal);
-				}
+				TestMeals.removeIfNotNull(testMeal, secondMeal, thirdMeal, fourthMeal);
+				removeIfNotNull(testUser, otherTestUser);
 			} catch (Exception e) {
-				logger.error("In Finally Block: Failed to remove entities", e);
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
 			}
 		}
 	}
@@ -914,11 +917,23 @@ public class TestUsers extends TestDBBase {
 	@Test
 	public void testFindUserMealsValidUserNoMeals() {
 		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
+		User otherTestUser = null;
+		User thirdTestUser = null;
+		
 		Meal testMeal = null;
 		Meal secondMeal = null;
 		Meal thirdMeal = null;
 		Meal fourthMeal = null;
 		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			otherTestUser = TestUsers.getUser(otherLogin);
+			otherTestUser = TestUsers.createUser(otherTestUser);
+			thirdTestUser = TestUsers.getUser(thirdLogin);
+			thirdTestUser = TestUsers.createUser(thirdTestUser);
+			
 			// create test Meal
 			testMeal = TestMeals.getMeal(testUser, mealDate1, mealTime1);
 			testMeal = TestMeals.createMeal(testMeal);
@@ -936,29 +951,21 @@ public class TestUsers extends TestDBBase {
 			assertNotNull("Valid user should have been found", user);
 			
 			List<Meal> meals = user.getMeals();
+			
 			assertNotNull("No meals should have been found", meals);
 			assertEquals("No meals should have been found", 0, meals.size());
 		} catch (RepositoryException re) {
-			fail("Find User meals should NOT have caused a RepositoryExcpetion!");
+			fail("Find User meals should NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals should NOT have caused an Exception!");
 		} finally {
 			try {
-				if (testMeal != null) {
-					TestMeals.removeMeal(testMeal);
-				}
-				if (secondMeal != null) {
-					TestMeals.removeMeal(secondMeal);
-				}
-				if (thirdMeal != null) {
-					TestMeals.removeMeal(thirdMeal);
-				}
-				if (fourthMeal != null) {
-					TestMeals.removeMeal(fourthMeal);
-				}
+				TestMeals.removeIfNotNull(testMeal, secondMeal, thirdMeal, fourthMeal);
+				removeIfNotNull(testUser, otherTestUser, thirdTestUser);
 			} catch (Exception e) {
-				logger.error("In Finally Block: Failed to remove entities", e);
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
 			}
 		}
 	}
@@ -967,11 +974,20 @@ public class TestUsers extends TestDBBase {
 	@Test
 	public void testFindUserMealsValidUserOneMeal() {
 		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
+		User otherTestUser = null;
+
 		Meal testMeal = null;
 		Meal secondMeal = null;
 		Meal thirdMeal = null;
 		Meal fourthMeal = null;
 		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			otherTestUser = TestUsers.getUser(otherLogin);
+			otherTestUser = TestUsers.createUser(otherTestUser);
+
 			// create test Meal
 			testMeal = TestMeals.getMeal(testUser, mealDate1, mealTime1);
 			testMeal = TestMeals.createMeal(testMeal);
@@ -990,26 +1006,17 @@ public class TestUsers extends TestDBBase {
 			assertEquals("One meal should have been found", 1, meals.size());
 			assertTrue("Created meals were not found in the returned list", meals.contains(thirdMeal));
 		} catch (RepositoryException re) {
-			fail("Find User meals should NOT have caused a RepositoryExcpetion!");
+			fail("Find User meals should NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals should NOT have caused an Exception!");
 		} finally {
 			try {
-				if (testMeal != null) {
-					TestMeals.removeMeal(testMeal);
-				}
-				if (secondMeal != null) {
-					TestMeals.removeMeal(secondMeal);
-				}
-				if (thirdMeal != null) {
-					TestMeals.removeMeal(thirdMeal);
-				}
-				if (fourthMeal != null) {
-					TestMeals.removeMeal(fourthMeal);
-				}
+				TestMeals.removeIfNotNull(testMeal, secondMeal, thirdMeal, fourthMeal);
+				removeIfNotNull(testUser, otherTestUser);
 			} catch (Exception e) {
-				logger.error("In Finally Block: Failed to remove entities", e);
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
 			}
 		}
 	}
@@ -1017,11 +1024,20 @@ public class TestUsers extends TestDBBase {
 	@Test
 	public void testFindUserMealsValidUserTwoMeals() {
 		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
+		User otherTestUser = null;
+
 		Meal testMeal = null;
 		Meal secondMeal = null;
 		Meal thirdMeal = null;
 		Meal fourthMeal = null;
 		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			otherTestUser = TestUsers.getUser(otherLogin);
+			otherTestUser = TestUsers.createUser(otherTestUser);
+			
 			// create test Meal
 			testMeal = TestMeals.getMeal(testUser, mealDate1, mealTime1);
 			testMeal = TestMeals.createMeal(testMeal);
@@ -1043,26 +1059,17 @@ public class TestUsers extends TestDBBase {
 			assertEquals("Two meals should have been found", 2, meals.size());
 			assertTrue("Created meals were not found in the returned list", meals.contains(testMeal) && meals.contains(secondMeal));
 		} catch (RepositoryException re) {
-			fail("Find User meals should NOT have caused a RepositoryExcpetion!");
+			fail("Find User meals should NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals should NOT have caused an Exception!");
 		} finally {
 			try {
-				if (testMeal != null) {
-					TestMeals.removeMeal(testMeal);
-				}
-				if (secondMeal != null) {
-					TestMeals.removeMeal(secondMeal);
-				}
-				if (thirdMeal != null) {
-					TestMeals.removeMeal(thirdMeal);
-				}
-				if (fourthMeal != null) {
-					TestMeals.removeMeal(fourthMeal);
-				}
+				TestMeals.removeIfNotNull(testMeal, secondMeal, thirdMeal, fourthMeal);
+				removeIfNotNull(testUser, otherTestUser);
 			} catch (Exception e) {
-				logger.error("In Finally Block: Failed to remove entities", e);
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
 			}
 		}
 	}
@@ -1081,13 +1088,19 @@ public class TestUsers extends TestDBBase {
 		int numDays = 60;
 		int[] mealTimeHours = {9, 12, 18};
 		int[] mealTimeMinutes = {0, 30, 45};
-		User[] users = {testUser, otherTestUser};
+		
+		User testUser = getUser(login);
+		testUser = createUser(testUser);
+		dateTimeRangesTestUsers.add(testUser);
+		testUser = getUser(otherLogin);
+		testUser = createUser(testUser);
+		dateTimeRangesTestUsers.add(testUser);
 		
 		Date mealTime;
 		Meal meal;
 		
 		try {
-			for (User user: users) {
+			for (User user: dateTimeRangesTestUsers) {
 				for (int i = numDays; i >= 0; i--) {
 					for (int j = 0; j < mealTimeHours.length; j++) {
 						mealTime = getDateDaysAgoAtTime(i, mealTimeHours[j], mealTimeMinutes[j]);
@@ -1099,18 +1112,34 @@ public class TestUsers extends TestDBBase {
 				}
 			}
 		} catch (RepositoryException re) {
-			logger.error("Error creating test meals for date range test", re);
+			printException(re);
+			logger.error("Error creating test meals for date range test");
 
+			try {
+				for (User toRemove: dateTimeRangesTestUsers) {
+					removeUser(toRemove);
+				}
+			} catch (RepositoryException re2) {
+				printException(re2);
+				logger.error("Error removing test users after creation failure");
+			}
+			
 			try {
 				for (Meal toRemove: dateTimeRangesTestMeals) {
 					TestMeals.removeMeal(toRemove);
 				}
 			} catch (RepositoryException re2) {
-				logger.error("Error removing test meals after creation failure", re2);
+				printException(re2);
+				logger.error("Error removing test meals after creation failure");
 			}
 			
 			throw re;
 		}
+		
+		// last user will not have any meals
+		testUser = getUser(thirdLogin);
+		testUser = createUser(testUser);
+		dateTimeRangesTestUsers.add(testUser);
 	}
 	
 	private void afterDateTimeRangeTest() {
@@ -1118,10 +1147,22 @@ public class TestUsers extends TestDBBase {
 			try {
 				TestMeals.removeMeal(toRemove);
 			} catch (RepositoryException re) {
-				logger.error("Error removing test meals", re);
+				printException(re);
+				logger.error("Error removing test meals");
 			}
 		}
 		dateTimeRangesTestMeals.clear();
+		
+		for (User toRemove : dateTimeRangesTestUsers) {
+			try {
+				removeUser(toRemove);
+			} catch (RepositoryException re) {
+				printException(re);
+				logger.error("Error removing test users");
+			}
+		}
+		dateTimeRangesTestUsers.clear();
+		
 	}
 	
 	/******************************************************************************/
@@ -1133,97 +1174,169 @@ public class TestUsers extends TestDBBase {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
 			repository.findMealsInDateAndTimeRanges(null, new Date(0), new Date(), getTime(0,0), getTime(23,59));
-			fail("Null User ID should have caused a RepositoryExcpetion!");
+			fail("Null User ID should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null User ID should have caused a RepositoryExcpetion!");
+			fail("Null User ID should have caused a RepositoryException!");
 		}
 	}
 
 	@Test
 	public void testFindUserMealsInDateAndTimeRangesNullFromDate() {
 		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
 		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			
 			repository.findMealsInDateAndTimeRanges(testUser.getId(), null, new Date(), getTime(0,0), getTime(23,59));
-			fail("Null start date should have caused a RepositoryExcpetion!");
+			fail("Null start date should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null end date should have caused a RepositoryExcpetion!");
+			fail("Null end date should have caused a RepositoryException!");
+		} finally {
+			try {
+				removeIfNotNull(testUser);
+			} catch (Exception e) {
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
+			}
 		}
 	}
 
 	@Test
 	public void testFindUserMealsInDateAndTimeRangesNullToDate() {
 		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
 		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			
 			repository.findMealsInDateAndTimeRanges(testUser.getId(), new Date(0), null, getTime(0,0), getTime(23,59));
-			fail("Null end date should have caused a RepositoryExcpetion!");
+			fail("Null end date should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null end date should have caused a RepositoryExcpetion!");
+			fail("Null end date should have caused a RepositoryException!");
+		} finally {
+			try {
+				removeIfNotNull(testUser);
+			} catch (Exception e) {
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
+			}
 		}
 	}
 
 	@Test
 	public void testFindUserMealsInDateAndTimeRangesNullFromTime() {
 		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
 		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			
 			repository.findMealsInDateAndTimeRanges(testUser.getId(), new Date(0), new Date(), null, getTime(23,59));
-			fail("Null start time should have caused a RepositoryExcpetion!");
+			fail("Null start time should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null start time  should have caused a RepositoryExcpetion!");
+			fail("Null start time  should have caused a RepositoryException!");
+		} finally {
+			try {
+				removeIfNotNull(testUser);
+			} catch (Exception e) {
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
+			}
 		}
 	}
 
 	@Test
 	public void testFindUserMealsInDateAndTimeRangesNullToTime() {
 		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
 		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			
 			repository.findMealsInDateAndTimeRanges(testUser.getId(), new Date(0), new Date(), getTime(0,0), null);
-			fail("Null end time should have caused a RepositoryExcpetion!");
+			fail("Null end time should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Null end time should have caused a RepositoryExcpetion!");
+			fail("Null end time should have caused a RepositoryException!");
+		} finally {
+			try {
+				removeIfNotNull(testUser);
+			} catch (Exception e) {
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
+			}
 		}
 	}
 	
 	@Test
 	public void testFindUserMealsInDateAndTimeRangesStartDateAfterEndDate() {
 		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
 		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			
 			// start date = today, end date = yesterday
 			repository.findMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(0, 0, 0), getDateDaysAgoAtTime(1, 0, 0), getTime(0,0), getTime(23,59));
-			fail("Invalid start and end dates should have caused a RepositoryExcpetion!");
+			fail("Invalid start and end dates should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Invalid start and end dates should have caused a RepositoryExcpetion!");
+			fail("Invalid start and end dates should have caused a RepositoryException!");
+		} finally {
+			try {
+				removeIfNotNull(testUser);
+			} catch (Exception e) {
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
+			}
 		}
 	}
 
 	@Test
 	public void testFindUserMealsInDateAndTimeRangesStartTimeAfterEndTime() {
 		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
 		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			
 			repository.findMealsInDateAndTimeRanges(testUser.getId(), new Date(0), new Date(), getTime(15,10), getTime(15,9));
-			fail("Invalid start and end times should have caused a RepositoryExcpetion!");
+			fail("Invalid start and end times should have caused a RepositoryException!");
 		} catch (RepositoryException re) {
 			// All good
 		} catch (Exception e) {
 			printException(e);
-			fail("Invalid start and end times should have caused a RepositoryExcpetion!");
+			fail("Invalid start and end times should have caused a RepositoryException!");
+		} finally {
+			try {
+				removeIfNotNull(testUser);
+			} catch (Exception e) {
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
+			}
 		}
 	}
 
@@ -1235,7 +1348,15 @@ public class TestUsers extends TestDBBase {
 		Meal secondMeal = null;
 		Meal thirdMeal = null;
 		Meal fourthMeal = null;
+		User testUser = null;
+		User otherTestUser = null;
 		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			otherTestUser = TestUsers.getUser(otherLogin);
+			otherTestUser = TestUsers.createUser(otherTestUser);
+			
 			// create test Meal
 			testMeal = TestMeals.getMeal(testUser, mealDate1, mealTime1);
 			testMeal = TestMeals.createMeal(testMeal);
@@ -1250,26 +1371,17 @@ public class TestUsers extends TestDBBase {
 			assertNotNull("No meals should have been found", meals);
 			assertEquals("No meals should have been found", 0, meals.size());
 		} catch (RepositoryException re) {
-			fail("testDateFuncsFourMeals should NOT have caused a RepositoryExcpetion!");
+			fail("testDateFuncsFourMeals should NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
 			fail("testDateFuncsFourMeals should NOT have caused an Exception!");
 		} finally {
 			try {
-				if (testMeal != null) {
-					TestMeals.removeMeal(testMeal);
-				}
-				if (secondMeal != null) {
-					TestMeals.removeMeal(secondMeal);
-				}
-				if (thirdMeal != null) {
-					TestMeals.removeMeal(thirdMeal);
-				}
-				if (fourthMeal != null) {
-					TestMeals.removeMeal(fourthMeal);
-				}
+				TestMeals.removeIfNotNull(testMeal, secondMeal, thirdMeal, fourthMeal);
+				removeIfNotNull(testUser, otherTestUser);
 			} catch (Exception e) {
-				logger.error("In Finally Block: Failed to remove entities", e);
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
 			}
 		}
 	}
@@ -1279,14 +1391,15 @@ public class TestUsers extends TestDBBase {
 	public void testFindUserMealsInDateAndTimeRangesNoMealsForUser() {
 		logger.debug("Running " + getCurrentMethodName());
 		try {
-			// create test meals
+			// create test users and meals
 			prepareForDateTimeRangeTests();
 			
-			List<Meal> meals = repository.findMealsInDateAndTimeRanges(thirdTestUser.getId(), new Date(0), new Date(), getTime(0,0), getTime(23,59));
+			List<Meal> meals = repository.findMealsInDateAndTimeRanges(dateTimeRangesTestUsers.get(dateTimeRangesTestUsers.size()-1).getId(), new Date(0), new Date(), getTime(0,0), getTime(23,59));
 			assertNotNull("No meals should have been found", meals);
 			assertEquals("No meals should have been found", 0, meals.size());
 		} catch (RepositoryException re) {
-			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryExcpetion!");
+			printException(re);
+			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals In Date And Time Ranges should NOT have caused an Exception!");
@@ -1302,11 +1415,11 @@ public class TestUsers extends TestDBBase {
 			// create test meals
 			prepareForDateTimeRangeTests();
 			
-			List<Meal> meals = repository.findMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(62, 0, 0), getDateDaysAgoAtTime(61, 0, 0), getTime(0,0), getTime(23,59));
+			List<Meal> meals = repository.findMealsInDateAndTimeRanges(dateTimeRangesTestUsers.get(0).getId(), getDateDaysAgoAtTime(62, 0, 0), getDateDaysAgoAtTime(61, 0, 0), getTime(0,0), getTime(23,59));
 			assertNotNull("No meals should have been found", meals);
 			assertEquals("No meals should have been found", 0, meals.size());
 		} catch (RepositoryException re) {
-			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryExcpetion!");
+			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals In Date And Time Ranges should NOT have caused an Exception!");
@@ -1322,11 +1435,11 @@ public class TestUsers extends TestDBBase {
 			// create test meals
 			prepareForDateTimeRangeTests();
 			
-			List<Meal> meals = repository.findMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(0, 0, 0), getTime(0,0), getTime(8,30));
+			List<Meal> meals = repository.findMealsInDateAndTimeRanges(dateTimeRangesTestUsers.get(0).getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(0, 0, 0), getTime(0,0), getTime(8,30));
 			assertNotNull("No meals should have been found", meals);
 			assertEquals("No meals should have been found", 0, meals.size());
 		} catch (RepositoryException re) {
-			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryExcpetion!");
+			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals In Date And Time Ranges should NOT have caused an Exception!");
@@ -1342,11 +1455,11 @@ public class TestUsers extends TestDBBase {
 			// create test meals
 			prepareForDateTimeRangeTests();
 			
-			List<Meal> meals = repository.findMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(60, 0, 0), getTime(0,0), getTime(23,59));
+			List<Meal> meals = repository.findMealsInDateAndTimeRanges(dateTimeRangesTestUsers.get(0).getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(60, 0, 0), getTime(0,0), getTime(23,59));
 			assertNotNull("Meals should have been found", meals);
 			assertEquals("Unexpected number of meals found", 3, meals.size());
 		} catch (RepositoryException re) {
-			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryExcpetion!");
+			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals In Date And Time Ranges should NOT have caused an Exception!");
@@ -1362,11 +1475,11 @@ public class TestUsers extends TestDBBase {
 			// create test meals
 			prepareForDateTimeRangeTests();
 			
-			List<Meal> meals = repository.findMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(0, 0, 0), getTime(9,0), getTime(9,0));
+			List<Meal> meals = repository.findMealsInDateAndTimeRanges(dateTimeRangesTestUsers.get(0).getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(0, 0, 0), getTime(9,0), getTime(9,0));
 			assertNotNull("Meals should have been found", meals);
 			assertEquals("Unexpected number of meals found", 61, meals.size());
 		} catch (RepositoryException re) {
-			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryExcpetion!");
+			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals In Date And Time Ranges should NOT have caused an Exception!");
@@ -1382,11 +1495,11 @@ public class TestUsers extends TestDBBase {
 			// create test meals
 			prepareForDateTimeRangeTests();
 			
-			List<Meal> meals = repository.findMealsInDateAndTimeRanges(testUser.getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(0, 0, 0), getTime(0,0), getTime(23,0));
+			List<Meal> meals = repository.findMealsInDateAndTimeRanges(dateTimeRangesTestUsers.get(0).getId(), getDateDaysAgoAtTime(60, 0, 0), getDateDaysAgoAtTime(0, 0, 0), getTime(0,0), getTime(23,0));
 			assertNotNull("Meals should have been found", meals);
 			assertEquals("Unexpected number of meals found", 183, meals.size());
 		} catch (RepositoryException re) {
-			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryExcpetion!");
+			fail("Find User meals In Date And Time Ranges should NOT have caused a RepositoryException!");
 		} catch (Exception e) {
 			printException(e);
 			fail("Find User meals In Date And Time Ranges should NOT have caused an Exception!");
@@ -1396,13 +1509,137 @@ public class TestUsers extends TestDBBase {
 	}
 	
 
+	/******************************************************************************/
+	/** Find by login								                             **/
+	/******************************************************************************/
 	
 	
+	@Test
+	public void testFindByLoginNullLogin() {
+		logger.debug("Running " + getCurrentMethodName());
+		try {
+			repository.findByLogin(null);
+			fail("Null login should have caused a RepositoryException!");
+		} catch (RepositoryException re) {
+			// All good
+		} catch (Exception e) {
+			printException(e);
+			fail("Null login should have caused a RepositoryException!");
+		}
+	}
+
+	@Test
+	public void testFindByLoginInvalidLogin() {
+		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
+		try {
+			// create test user
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			
+			User user = repository.findByLogin(invalidLogin);
+			assertNull("Null user should have been returned for invalid login " + invalidLogin, user);
+		} catch (RepositoryException re) {
+			fail("Invalid login should NOT have caused a RepositoryException!");
+		} catch (Exception e) {
+			printException(e);
+			fail("Invalid login should NOT have caused a RepositoryException!");
+		} finally {
+			try {
+				removeIfNotNull(testUser);
+			} catch (Exception e) {
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
+			}
+		}
+	}
 	
-//	public static void main(String[] args) throws Exception {
-//		User user = repository.find(1157);
-//		System.out.println(user);
-//
-//		System.out.println("User Meals: " + (user != null ? user.getMeals() : "null"));
+	@Test
+	public void testFindByLoginValidLogin() {
+		logger.debug("Running " + getCurrentMethodName());
+		User testUser = null;
+		try {
+			// create test users
+			testUser = TestUsers.getUser(login);
+			testUser = TestUsers.createUser(testUser);
+			
+			User user = repository.findByLogin(testUser.getLogin());
+			assertNotNull("One user should have been returned for a valid login", user);
+			assertEquals("Unexpected login found in returned user", testUser.getLogin(), user.getLogin());
+		} catch (RepositoryException re) {
+			fail("Invalid login should NOT have caused a RepositoryException!");
+		} catch (Exception e) {
+			printException(e);
+			fail("Invalid login should NOT have caused a RepositoryException!");
+		} finally {
+			try {
+				removeIfNotNull(testUser);
+			} catch (Exception e) {
+				printException(e);
+				logger.error("In Finally Block: Failed to remove entities");
+			}
+		}
+	}
+	
+	
+	/******************************************************************************/
+	/** Update keeping password if not provided									 **/
+	/******************************************************************************/
+	
+//	@Test
+//	public void testUpdateKeepPasswordIfNotProvidedNullUser() {
+//		logger.debug("Running " + getCurrentMethodName());
+//		try {
+//			repository.updateKeepPasswordIfNotProvided(null);
+//			fail("Null user should have caused a RepositoryException!");
+//		} catch (RepositoryException re) {
+//			// All good
+//		} catch (Exception e) {
+//			printException(e);
+//			fail("Null user should have caused a RepositoryException!");
+//		}
 //	}
+//
+//	@Test
+//	public void testUpdateKeepPasswordIfNotProvidedNullPassword() {
+//		logger.debug("Running " + getCurrentMethodName());
+//		try {
+//			//User changedUser
+//			
+//			User user = repository.updateKeepPasswordIfNotProvided(null);
+//			assertNotNull("The user should have been returned for null password", user);
+//		} catch (RepositoryException re) {
+//			fail("Invalid login should NOT have caused a RepositoryException!");
+//		} catch (Exception e) {
+//			printException(e);
+//			fail("Invalid login should NOT have caused a RepositoryException!");
+//		}
+//	}
+//	
+//	@Test
+//	public void testUpdateKeepPasswordIfNotProvidedNotNullPassword() {
+//		logger.debug("Running " + getCurrentMethodName());
+//		try {
+//			User user = repository.updateKeepPasswordIfNotProvided(testUser);
+//			assertNotNull("One user should have been returned for a valid login", user);
+//			assertEquals("Unexpected login found in returned user", testUser.getLogin(), user.getLogin());
+//		} catch (RepositoryException re) {
+//			fail("Invalid login should NOT have caused a RepositoryException!");
+//		} catch (Exception e) {
+//			printException(e);
+//			fail("Invalid login should NOT have caused a RepositoryException!");
+//		}
+//	}
+	
+	
+	
+	
+	
+	
+	public static void main(String[] args) throws Exception {
+		User user = repository.find(94);
+		System.out.println(user);
+
+		System.out.println("User Meals: " + (user != null ? user.getMeals() : "null"));
+	}
 }

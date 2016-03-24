@@ -15,7 +15,7 @@ Error:
 POST (create) - ID not provided!
 
 http://localhost:8080/CaloriesWeb/api/v1/meals/
-{"calories":580,"description":"REST meal description","mealDate":1451520147746,"mealTime":1458520847146,"userId":980}
+{"calories":580,"description":"REST meal description","mealDate":1451520147746,"mealTime":1458520847146,"user":{"Id":980}}
 
 OK: 204
 

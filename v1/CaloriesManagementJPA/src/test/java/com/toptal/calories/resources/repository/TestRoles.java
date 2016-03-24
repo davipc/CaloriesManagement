@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -39,6 +40,11 @@ public class TestRoles extends TestDBBase {
 	public void tearDown() throws Exception {
 	}
 
+	@AfterClass
+	public void tearDownClass() throws Exception {
+		logger.warn("Current Test: " + new Date(TestDBBase.CURRENT_TEST_ID));
+	}
+	
 	/******************************************************************************/
 	/**  		            Helper Methods                                       **/											
 	/******************************************************************************/
@@ -69,7 +75,15 @@ public class TestRoles extends TestDBBase {
 		repository.remove(testRole.getId());
 	}
 	
-	
+	public static void removeIfNotNull(Role...roles) 
+	throws RepositoryException {
+		for (Role role: roles) {
+			if (role != null && role.getId() != null) {
+				removeRole(role);
+			}
+		}
+	}
+
 	/******************************************************************************/
 	/******************************************************************************/
 	/**  		            ROLE ONLY tests                                  **/											
@@ -93,11 +107,11 @@ public class TestRoles extends TestDBBase {
 			assertEquals("Inserted and found roles didn't match: ", testRole, role);
 			
 			role.setName(otherName);
-			Role updRole = repository.createOrUpdate(role);
+			repository.createOrUpdate(role);
 			// Update the value on local object to compare after DB update
 			role = repository.find(testRole.getId());
 			assertNotNull("Role was expected to be found: " + role, role);
-			assertEquals("Updated and found roles didn't match: ", updRole, role);
+			assertEquals("Role name should have been updated: ", testRole, role);
 			
 			removed = repository.remove(testRole.getId());
 			assertTrue("Entity should have been removed!", removed);
@@ -239,12 +253,12 @@ public class TestRoles extends TestDBBase {
 			role = repository.createOrUpdate(role);
 			role.setName(null);
 			role = repository.createOrUpdate(role);
-			fail("Null Role name should have caused a RepositoryExcpetion!");
+			// update call will be made successfully, but won't cause the column to change (it's not updatable in the entity)
 		} catch (RepositoryException re) {
-			// All good
+			fail("Null Role name should NOT have caused a RepositoryExcpetion!");
 		} catch (Exception e) {
 			printException(e);
-			fail("Null Role name should have caused a RepositoryExcpetion!");
+			fail("Null Role name should NOT have caused a RepositoryExcpetion!");
 		} finally {
 			if (role != null && role.getId() != null) {
 				try {

@@ -3,6 +3,7 @@ package com.toptal.calories.resources.repository;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.TemporalType;
 
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.toptal.calories.resources.entity.Meal;
 import com.toptal.calories.resources.entity.User;
+import com.toptal.calories.resources.util.LogUtil;
 
 
 public class Users extends BaseRepository<User> {
@@ -55,7 +57,9 @@ public class Users extends BaseRepository<User> {
 						String.format("Error in find for meals " + formattedInputParameters), 
 						pe);
 			}
-			logger.info("Finished finding Meals " + formattedInputParameters + getWrapupMsg(startTime));
+
+			LogUtil.logEnd(logger, "finding Meals " + formattedInputParameters, startTime);
+			
 			return meals;
 		} catch (RepositoryException e) {
 			logger.error(e.getMessage() + getWrapupMsg(startTime) + "; rootCause: " + ExceptionUtils.getRootCauseMessage(e));
@@ -82,4 +86,80 @@ public class Users extends BaseRepository<User> {
 			throw new RepositoryException(String.format("Start time %tR is after end time %tR", fromTime, toTime));
 		}
 	}
+	
+	/**
+	 * Finds and returns the User associated with the input login.
+	 * @param login The user login.
+	 * @return The User object associated with the input login. If no user object
+	 * is associated to the input login, null is returned.
+	 */
+	public User findByLogin(String login) throws RepositoryException {
+		logger.info("Finding user with login " + login);
+		long startTime = System.currentTimeMillis();
+		try {
+			if (login == null) {
+				throw new RepositoryException("Null login!!");
+			} else {
+				User user = null;
+				try {
+					user = (User) em.createNamedQuery("User.findByLogin")
+								.setParameter("login", login)
+								.getSingleResult();
+							
+				} catch (NoResultException nre) {
+					// not really an error - it's just that there is no customer by that attribute value
+					// leave customer = null
+				} catch (PersistenceException pe) {
+					throw new RepositoryException("Error in find for user with login " + login, pe);
+				}
+
+				LogUtil.logEnd(logger, "finding user with login " + login, startTime);
+				return user;
+			}
+		} catch (RepositoryException e) {
+			logger.error(e.getMessage() + getWrapupMsg(startTime) + "; rootCause: " + ExceptionUtils.getRootCauseMessage(e));
+			throw e;
+		}
+		
+	}
+	
+	/**
+	 * Used to update the user but not the password field if that one is not provided (null).
+	 * This is needed because an admin could be updating a user profile, but he wouldn't be able to know the password,
+	 * and it would be annoying for the user if he had to reset his password everytime an admin changed something on his profile.
+	 * 
+	 * @param user The user to be updated
+	 * @throws RepositoryException If the input user is null, or any DB error occurs 
+	 */
+	public User updateKeepPasswordIfNotProvided(User user) throws RepositoryException {
+		User updated = null;
+		
+		logger.info("Updating user " + (user != null ? user.getId() : "null" )+ " checking for password existence");
+		long startTime = System.currentTimeMillis();
+		try {
+			if (user == null) {
+				throw new RepositoryException("Null user!!");
+			} else {
+				try {
+					// regular case, just call regular update method
+				    if (user.getPassword() == null) {
+						final User existingUser = find(user.getId());
+
+						user.setPassword(existingUser.getPassword());
+				    }						
+					
+				    updated = createOrUpdate(user);
+				} catch (PersistenceException pe) {
+					throw new RepositoryException("Error updating user " + user.getId() + " checking for password existence", pe);
+				}
+
+				LogUtil.logEnd(logger, "updating user " + user + " checking password existence", startTime);
+				
+				return updated;
+			}
+		} catch (RepositoryException e) {
+			logger.error(e.getMessage() + getWrapupMsg(startTime) + "; rootCause: " + ExceptionUtils.getRootCauseMessage(e));
+			throw e;
+		}
+	}	
 }

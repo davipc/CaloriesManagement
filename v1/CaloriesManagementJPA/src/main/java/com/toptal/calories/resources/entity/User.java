@@ -13,6 +13,7 @@ import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
@@ -21,6 +22,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -38,11 +40,16 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 
 @Entity
-@Table(name="app_user")
+@Table(name="app_user",
+		uniqueConstraints={@UniqueConstraint(name = "User_UNIQ", columnNames = {"login"})},
+		indexes = {@Index(name="User_IDX", columnList="login")
+})
 @NamedQueries ({
 	@NamedQuery(name="User.findAll", query="SELECT u FROM User u"),
 	@NamedQuery(name="User.findMealsInDateAndTimeRange", 
-			query="SELECT m FROM User u JOIN u.meals m where m.user.id = :userId and m.mealDate between :startDate and :endDate and m.mealTime between :startTime and :endTime")
+			query="SELECT m FROM User u JOIN u.meals m where m.user.id = :userId and m.mealDate between :startDate and :endDate and m.mealTime between :startTime and :endTime"),
+	@NamedQuery(name="User.findByLogin", query="SELECT u FROM User u where u.login = :login")
+
 })
 
 public class User extends BaseEntity {
@@ -53,17 +60,17 @@ public class User extends BaseEntity {
 	@Column(name = "id", updatable=false, nullable=false)	
 	private Integer id;
 
-	@Column(nullable=false)
+	@Column(nullable=false, unique=true, length=12)
 	private String login;
 
-	@Column(nullable=false)
+	@Column(nullable=false, length=64)
 	private String password;
 
-	@Column(nullable=false)
+	@Column(nullable=false, length=80)
 	private String name;
 
 	@Enumerated(EnumType.STRING)
-	@Column(nullable=false)
+	@Column(nullable=false, length=1)
 	private Gender gender;
 
 	@Column(name="daily_calories", nullable=false)
@@ -81,7 +88,7 @@ public class User extends BaseEntity {
 
 	// makes sure this is not present in the generated JSON
 	@XmlTransient
-	@OneToMany(fetch=FetchType.LAZY, cascade = CascadeType.ALL, mappedBy="user")
+	@OneToMany(fetch=FetchType.LAZY, cascade=CascadeType.ALL, mappedBy="user")
 	private List<Meal> meals;
 	
 	@Column(name="creation_dt", nullable=false)

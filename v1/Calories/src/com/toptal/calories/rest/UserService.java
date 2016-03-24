@@ -3,9 +3,12 @@ package com.toptal.calories.rest;
 import java.util.Date;
 import java.util.List;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -24,6 +27,7 @@ import com.toptal.calories.resources.entity.User;
 import com.toptal.calories.resources.repository.RepositoryException;
 import com.toptal.calories.resources.repository.RepositoryFactory;
 import com.toptal.calories.resources.repository.Users;
+import com.toptal.calories.rest.util.EncryptionHelper;
 import com.toptal.calories.rest.util.RestUtil;
 
 @Path("/users")
@@ -47,7 +51,7 @@ public class UserService {
 		
 		if (user == null) {
 			logger.debug("No users found for user with ID " + userId);
-	        throw new WebApplicationException(Status.NOT_FOUND);
+	        throw new NotFoundException();
 	    }
 
 		logger.debug("User found for ID " + userId);
@@ -74,7 +78,7 @@ public class UserService {
 		
 		if (user == null) {
 			logger.debug("Error persisting user " + user);
-	        throw new WebApplicationException(Status.NOT_FOUND);
+	        throw new NotFoundException();
 	    }
 
 		logger.debug("Finished persisting " + user);
@@ -85,11 +89,16 @@ public class UserService {
 	public void updateUser(User user) throws RepositoryException {
 		logger.debug("Updating user " + user); 
 		
-		user = users.createOrUpdate(user);
+		// we will assume if password is provided it comes not encrypted
+		if (user.getPassword() != null)
+			user.setPassword(new EncryptionHelper().encrypt(user.getPassword()));
 		
-		if (user == null) {
+		// if it is not provided, the existing one will be kept (front will handle policy on password update during profile update)
+		User userUpdated = users.updateKeepPasswordIfNotProvided(user);
+		
+		if (userUpdated == null) {
 			logger.debug("Error updating user " + user);
-	        throw new WebApplicationException(Status.NOT_FOUND);
+	        throw new NotFoundException();
 	    }
 
 		logger.debug("Finished updating " + user);
@@ -152,7 +161,7 @@ public class UserService {
 		List<Meal> mealsFromUser = user.getMeals();
 		if (mealsFromUser == null) {
 			logger.debug("No meals found for user with ID " + userId);
-	        throw new WebApplicationException(Status.NOT_FOUND);
+	        throw new NotFoundException();
 	    }
 
 		logger.debug("Meals found for user with ID " + userId + ": "  + mealsFromUser.size());
@@ -169,7 +178,7 @@ public class UserService {
 		
 		if (mealsFromUser == null) {
 			logger.debug("No meals found " + formattedString);
-	        throw new WebApplicationException(Status.NOT_FOUND);
+	        throw new NotFoundException();
 	    }
 
 		logger.debug("Meals found " + formattedString + ": "  + mealsFromUser.size());
@@ -178,29 +187,43 @@ public class UserService {
 	}
 
 	
-	
-	
-	
-	
-	@GET
+	@POST
+	@Path("auth")
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("auth/{userId}")
-	public User authenticateUser(@PathParam("userId") int userId) throws RepositoryException {
-		logger.debug("Authenticating user " + userId); 
+	public User authenticateUser(User user) throws RepositoryException {
+		logger.debug("Authenticating user " + user.getLogin()); 
+
+		if (user == null || user.getLogin() == null || user.getPassword() == null)
+			throw new BadRequestException("Missing login and/or password in the request");
 		
-		User user = users.find(userId);
+		// NOTE: incoming user comes with only login and password fields set
+
+		// we will fetch the user back, so if in future we want to add some "block after X attempts" feature we already have the user here to update 
 		
-		if (user == null) {
-			logger.debug("No users found for user with ID " + userId);
-	        throw new WebApplicationException(Status.NOT_FOUND);
+		User foundUser = users.findByLogin(user.getLogin());
+		
+		if (foundUser == null) {
+			// we will return this response (and message), but the front end can inform the user the more secure message: "Invalid login/password" 
+			// for both not found and not not authorized codes
+			logger.info("No users found for user with login " + user.getLogin());
+	        throw new NotFoundException();
 	    }
 
 		// compare passwords (provided vs stored)
 		boolean authenticated = false;
-
 		
+		String providedPwdEnc = new EncryptionHelper().encrypt(user.getPassword());
 		
-		logger.debug("User " + userId + " authentication "  + (authenticated ? "succeeded!" : "failed!" ));
+		authenticated = providedPwdEnc.equals(foundUser.getPassword());
+		
+		// we will return this response (and message), but the front end can inform the user the more secure message: "Invalid login/password" 
+		// for both not found and not not authorized codes
+		if (!authenticated)
+			throw new NotAuthorizedException("Invalid password");
+		
+		logger.info("User " + user.getLogin() + " authentication "  + (authenticated ? "succeeded!" : "failed!" ));
+		
 		return user;
 	}
 }

@@ -78,6 +78,8 @@ public class TestMeals extends TestDBBase {
 		TestUsers.removeUser(otherTestUser);
 
 		logger.debug("Finished deleting test users after all tests done");
+		
+		logger.warn("Current Test: " + new Date(TestDBBase.CURRENT_TEST_ID));
 	}
 	
 	/******************************************************************************/
@@ -114,6 +116,15 @@ public class TestMeals extends TestDBBase {
 			throw new RepositoryException("Null entity or Id received: " + testMeal);
 		}
 		repository.remove(testMeal.getId());
+	}
+	
+	public static void removeIfNotNull(Meal ...meals) 
+	throws RepositoryException {
+		for (Meal meal: meals) {
+			if (meal != null && meal.getId() != null) {
+				removeMeal(meal);
+			}
+		}
 	}
 	
 	
@@ -154,12 +165,10 @@ public class TestMeals extends TestDBBase {
 			printException(e);
 			fail(e.getMessage());
 		} finally {
-			if (!removed && testMeal != null && testMeal.getId() != null) {
-				try {
-					repository.remove(testMeal.getId());
-				} catch (Exception e) {
-					logger.error("In Finally Block: Failed to remove entity", e);
-				}
+			try {
+				removeIfNotNull(testMeal);
+			} catch (Exception e) {
+				logger.error("In Finally Block: Failed to remove entity", e);
 			}
 		}
 	}
@@ -196,18 +205,7 @@ public class TestMeals extends TestDBBase {
 			fail("Get All meals should NOT have caused an Exception!");
 		} finally {
 			try {
-				if (testMeal != null) {
-					repository.remove(testMeal.getId());
-				}
-				if (secondMeal != null) {
-					repository.remove(secondMeal.getId());
-				}
-				if (thirdMeal != null) {
-					repository.remove(thirdMeal.getId());
-				}
-				if (fourthMeal != null) {
-					repository.remove(fourthMeal.getId());
-				}
+				removeIfNotNull(testMeal, secondMeal, thirdMeal, fourthMeal);
 			} catch (Exception e) {
 				logger.error("In Finally Block: Failed to remove entities", e);
 			}
@@ -346,12 +344,10 @@ public class TestMeals extends TestDBBase {
 			printException(e);
 			fail("Null Meal Description should have caused a RepositoryExcpetion!");
 		} finally {
-			if (meal != null && meal.getId() != null) {
-				try {
-					removeMeal(meal);
-				} catch (Exception e) {
-					printException(e);
-				}
+			try {
+				removeIfNotNull(meal);
+			} catch (Exception e) {
+				logger.error("In Finally Block: Failed to remove entities", e);
 			}
 		}
 	}
@@ -372,12 +368,10 @@ public class TestMeals extends TestDBBase {
 			printException(e);
 			fail("Null Meal Calories should have caused a RepositoryExcpetion!");
 		} finally {
-			if (meal != null && meal.getId() != null) {
-				try {
-					removeMeal(meal);
-				} catch (Exception e) {
-					printException(e);
-				}
+			try {
+				removeIfNotNull(meal);
+			} catch (Exception e) {
+				printException(e);
 			}
 		}
 	}

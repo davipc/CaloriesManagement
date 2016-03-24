@@ -17,6 +17,8 @@ public class RepositoryFactory {
 
 	private static EntityManagerFactory emFactory;
 	
+	private static EntityManager em;
+	
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
@@ -26,6 +28,8 @@ public class RepositoryFactory {
 		});
 		// if the factory is not created yet, create it
 		emFactory = init(emFactory, PERSISTENCE_UNIT_NAME);
+		
+		em = getEntityManager();
 	}
 
 	private static EntityManagerFactory init(EntityManagerFactory emFactory, String persUnitName) {
@@ -63,7 +67,7 @@ public class RepositoryFactory {
 	 * Returns the entity manager
 	 * @return
 	 */
-	private EntityManager getEntityManager() {
+	private static EntityManager getEntityManager() {
 		logger.debug("Creating entity manager ");
 		long startTime = System.currentTimeMillis();
 		EntityManager em = emFactory.createEntityManager();
@@ -76,7 +80,7 @@ public class RepositoryFactory {
 		R repository = null;
 		try {
 			repository = clazz.newInstance();
-			repository.setEntityManager(getEntityManager());
+			repository.setEntityManager(em);
 		} catch (InstantiationException|IllegalAccessException e ) {
 			logger.error("Error creating new repository for " + clazz.getName(), e);
 			throw new IllegalArgumentException("Failed creating repository of provided type " + clazz, e);

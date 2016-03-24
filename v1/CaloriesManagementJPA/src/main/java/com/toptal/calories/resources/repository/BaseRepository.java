@@ -164,6 +164,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 			if (id == null) {
 				throw new RepositoryException("Null ID received for find " + className);
 			} else {
+				em.clear();
 				try {
 					entity = find(id, modelEntityType);
 				} catch (PersistenceException pe) {

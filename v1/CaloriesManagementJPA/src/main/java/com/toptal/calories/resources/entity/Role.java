@@ -32,7 +32,8 @@ public class Role extends BaseEntity {
 	@Column(name = "id", updatable=false, nullable=false)	
 	private Integer id;
 
-	@Column(nullable=false)
+	// this field can never be modified by other entities updates
+	@Column(nullable=false, length=20, updatable=false)
 	private String name;
 
 	/** not really needed
