@@ -1,5 +1,6 @@
 package com.toptal.calories.resources.repository;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,7 +21,7 @@ public class RepositoryFactory {
 
 	private static EntityManagerFactory emFactory;
 	
-	private static Map<Object, EntityManager> currentEMs = new HashMap<>();
+	private static Map<Object, EntityManager> currentEMs = Collections.synchronizedMap(new HashMap<>());
 	
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread() {

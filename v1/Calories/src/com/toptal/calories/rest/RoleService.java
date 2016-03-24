@@ -2,10 +2,12 @@ package com.toptal.calories.rest;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
@@ -22,7 +24,10 @@ public class RoleService {
 	
 	private Logger logger = LoggerFactory.getLogger(RoleService.class);
 
-	private Roles roles = new RepositoryFactory().createRepository(Roles.class, 1);
+	@Context
+	private HttpServletRequest httpRequest;	
+
+	private Roles roles = new RepositoryFactory().createRepository(Roles.class, httpRequest);
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)

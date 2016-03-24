@@ -26,10 +26,10 @@ public class MealService {
 	
 	private Logger logger = LoggerFactory.getLogger(MealService.class);
 
-	 @Context
-	 private HttpServletRequest httpRequest;	
+	@Context
+	private HttpServletRequest httpRequest;	
 	
-	private Meals meals = new RepositoryFactory().createRepository(Meals.class, 1);
+	private Meals meals = new RepositoryFactory().createRepository(Meals.class, httpRequest);
 
 	@GET
 	@Path("{id}")
@@ -38,14 +38,6 @@ public class MealService {
 		logger.debug("Looking for meal with ID " + mealId); 
 		
 		// TODO: FOR DEBUGGING, REMOVE IT
-		// TODO: FIND A UNIQUE IDENTIFIER FOR THE REQUEST TO USE IN Repository CONSTRUCTION
-		if (httpRequest == null) {
-			logger.debug("Request object is null!");
-		} else {
-			logger.debug("Session ID: " + httpRequest.getRequestedSessionId());
-			logger.debug("Request Date: " + httpRequest.getDateHeader("Date"));
-		}
-		
 		if (meals == null) {
 			logger.error("Meals ainda e null!!");
 		}
