@@ -26,7 +26,7 @@ public class MealService {
 	
 	private Logger logger = LoggerFactory.getLogger(MealService.class);
 
-	private Meals meals = new RepositoryFactory().createRepository(Meals.class);
+	private Meals meals = new RepositoryFactory().createRepository(Meals.class, 1);
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)

@@ -22,7 +22,7 @@ public class RoleService {
 	
 	private Logger logger = LoggerFactory.getLogger(RoleService.class);
 
-	private Roles roles = new RepositoryFactory().createRepository(Roles.class);
+	private Roles roles = new RepositoryFactory().createRepository(Roles.class, 1);
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)

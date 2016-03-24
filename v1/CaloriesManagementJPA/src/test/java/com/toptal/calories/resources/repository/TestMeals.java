@@ -26,7 +26,7 @@ public class TestMeals extends TestDBBase {
 
 	public static Logger logger = LoggerFactory.getLogger(TestMeals.class);
 
-	protected static Meals repository = new RepositoryFactory().createRepository(Meals.class);
+	protected static Meals repository = new RepositoryFactory().createRepository(Meals.class, TestDBBase.CURRENT_TEST_ID);
 
 	private static SimpleDateFormat sdf = new SimpleDateFormat("HHmmssSSS");
 	private static String login = sdf.format(new Date());
@@ -45,6 +45,8 @@ public class TestMeals extends TestDBBase {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+		logger.warn("Current Test: " + TestDBBase.CURRENT_TEST_ID);
+
 		logger.debug("Creating test users to be used by all tests...");
 		
 		testUser = TestUsers.getUser(login);
@@ -79,7 +81,7 @@ public class TestMeals extends TestDBBase {
 
 		logger.debug("Finished deleting test users after all tests done");
 		
-		logger.warn("Current Test: " + new Date(TestDBBase.CURRENT_TEST_ID));
+		logger.warn("Current Test: " + TestDBBase.CURRENT_TEST_ID);
 	}
 	
 	/******************************************************************************/

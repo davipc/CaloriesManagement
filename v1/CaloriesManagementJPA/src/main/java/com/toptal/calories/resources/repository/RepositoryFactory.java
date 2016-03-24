@@ -1,5 +1,8 @@
 package com.toptal.calories.resources.repository;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -17,7 +20,7 @@ public class RepositoryFactory {
 
 	private static EntityManagerFactory emFactory;
 	
-	private static EntityManager em;
+	private static Map<Object, EntityManager> currentEMs = new HashMap<>();
 	
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -28,8 +31,6 @@ public class RepositoryFactory {
 		});
 		// if the factory is not created yet, create it
 		emFactory = init(emFactory, PERSISTENCE_UNIT_NAME);
-		
-		em = getEntityManager();
 	}
 
 	private static EntityManagerFactory init(EntityManagerFactory emFactory, String persUnitName) {
@@ -75,9 +76,16 @@ public class RepositoryFactory {
 		return em;
 	}
 	
-	public <R extends BaseRepository<?>> R createRepository(Class<R> clazz) 
+	public <R extends BaseRepository<?>> R createRepository(Class<R> clazz, Object requestId) 
 	throws IllegalArgumentException {
 		R repository = null;
+		
+		EntityManager em = currentEMs.get(requestId);
+		if (em == null) {
+			em = getEntityManager();
+			currentEMs.put(requestId, em);
+		}
+		
 		try {
 			repository = clazz.newInstance();
 			repository.setEntityManager(em);

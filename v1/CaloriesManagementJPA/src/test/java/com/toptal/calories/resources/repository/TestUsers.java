@@ -29,7 +29,7 @@ public class TestUsers extends TestDBBase {
 
 	public static Logger logger = LoggerFactory.getLogger(TestUsers.class);
 
-	protected static Users repository = new RepositoryFactory().createRepository(Users.class);
+	protected static Users repository = new RepositoryFactory().createRepository(Users.class, TestDBBase.CURRENT_TEST_ID);
 
 	private static SimpleDateFormat sdf = new SimpleDateFormat("HHmmssSSS");
 	private static String login = sdf.format(new Date());
@@ -64,8 +64,8 @@ public class TestUsers extends TestDBBase {
 	}
 
 	@AfterClass
-	public void tearDownClass() throws Exception {
-		logger.warn("Current Test: " + new Date(TestDBBase.CURRENT_TEST_ID));
+	public static void tearDownClass() throws Exception {
+		logger.warn("Current Test: " + TestDBBase.CURRENT_TEST_ID);
 	}
 	
 	

@@ -24,7 +24,7 @@ public class TestRoles extends TestDBBase {
 
 	public static Logger logger = LoggerFactory.getLogger(TestRoles.class);
 
-	protected static Roles repository = new RepositoryFactory().createRepository(Roles.class);
+	protected static Roles repository = new RepositoryFactory().createRepository(Roles.class, TestDBBase.CURRENT_TEST_ID);
 
 	private static SimpleDateFormat sdf = new SimpleDateFormat("HHmmssSSS");
 	private static String name = sdf.format(new Date());
@@ -41,8 +41,8 @@ public class TestRoles extends TestDBBase {
 	}
 
 	@AfterClass
-	public void tearDownClass() throws Exception {
-		logger.warn("Current Test: " + new Date(TestDBBase.CURRENT_TEST_ID));
+	public static void tearDownClass() throws Exception {
+		logger.warn("Current Test: " + TestDBBase.CURRENT_TEST_ID);
 	}
 	
 	/******************************************************************************/

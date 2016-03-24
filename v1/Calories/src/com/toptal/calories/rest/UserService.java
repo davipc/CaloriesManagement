@@ -35,7 +35,7 @@ public class UserService {
 	
 	private Logger logger = LoggerFactory.getLogger(UserService.class);
 
-	private Users users = new RepositoryFactory().createRepository(Users.class);
+	private Users users = new RepositoryFactory().createRepository(Users.class, 1);
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
