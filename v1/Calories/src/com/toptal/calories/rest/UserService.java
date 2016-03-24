@@ -3,6 +3,7 @@ package com.toptal.calories.rest;
 import java.util.Date;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -16,6 +17,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
@@ -35,7 +37,10 @@ public class UserService {
 	
 	private Logger logger = LoggerFactory.getLogger(UserService.class);
 
-	private Users users = new RepositoryFactory().createRepository(Users.class, 1);
+	@Context
+	private HttpServletRequest httpRequest;	
+
+	private Users users = new RepositoryFactory().createRepository(Users.class, httpRequest);
 
 	@GET
 	@Path("{id}")

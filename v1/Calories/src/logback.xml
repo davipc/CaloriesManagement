@@ -33,19 +33,20 @@
 		</encoder>
 	</appender>
 
-	<logger name="com.toptal.calories.resources" level="DEBUG" >
+	<logger name="com.toptal.calories.resources" level="INFO" >
 		<appender-ref ref="JPA-TOPTAL-FILE" />
 		<appender-ref ref="JPA-TOPTAL-SEVERE-FILE" />
+		<appender-ref ref="STDOUT" />
 	</logger>
 
 	<logger name="com.toptal.calories.rest" level="DEBUG" >
-		<!-- <appender-ref ref="STDOUT" /> -->
+		<appender-ref ref="STDOUT" />
 	</logger>
 
 	<logger name="org.glassfish.jersey" level="DEBUG" >
 	</logger>
 
 	<root level="DEBUG">
-		<appender-ref ref="STDOUT" />
+		<!-- <appender-ref ref="STDOUT" /> -->
 	</root>
 </configuration>
