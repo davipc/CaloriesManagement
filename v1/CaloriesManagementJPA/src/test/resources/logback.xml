@@ -38,11 +38,18 @@
 		<appender-ref ref="JPA-TOPTAL-SEVERE-FILE" />
 	</logger>
 
-	<logger name="com.toptal.calories.resources.repository" level="DEBUG" >
+	<logger name="com.toptal.calories.resources.repository.TestMeals" level="WARN" >
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.toptal.calories.resources.repository.TestRoles" level="WARN" >
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.toptal.calories.resources.repository.TestUsers" level="WARN" >
 		<appender-ref ref="STDOUT" />
 	</logger>
 
 	<root level="WARN">
-		<appender-ref ref="STDOUT" />
+		<!-- If enabled everything will be printed to STDOUT (on  every log level) -->		
+		<!--  <appender-ref ref="STDOUT" /> -->
 	</root>
 </configuration>

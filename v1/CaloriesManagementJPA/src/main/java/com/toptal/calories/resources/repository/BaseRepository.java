@@ -1,4 +1,4 @@
-package com.toptal.calories.resources;
+package com.toptal.calories.resources.repository;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
@@ -7,26 +7,28 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.persistence.PersistenceException;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.toptal.calories.resources.entity.BaseEntity;
+import com.toptal.calories.resources.util.LogUtil;
+
 
 public abstract class BaseRepository<E extends BaseEntity> {
-	private static Logger logger = LoggerFactory.getLogger(BaseRepository.class.getName());
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	// Max time for DB operation to be performed. If an operation takes more than that, a WARN message will be sent to the log file.
-	public static int MAX_TIME_DB_OPER_MS = 200;
-	
 	protected Class<E> associatedEntityType;
+	protected EntityManager em;
 	
-
 	public BaseRepository() {
-		associatedEntityType = getGenericClassTypeValue(); 
+		associatedEntityType = getGenericClassTypeValue();
+	}
+
+	public void setEntityManager(EntityManager em) {
+		this.em = em;
 	}
 	
 	/**
@@ -40,63 +42,6 @@ public abstract class BaseRepository<E extends BaseEntity> {
 		return (Class<E>) parameterizedType.getActualTypeArguments()[0];
     }	
 	
-	
-	protected static EntityManagerFactory init(EntityManagerFactory emFactory, String persUnitName) {
-		logger.info("Initializing DB com.toptal.calories.resources.entity");
-		long startTime = System.currentTimeMillis();
-		
-		try {
-			if (emFactory != null) {
-				emFactory.close();
-			}
-			logger.debug("Trying to create a EntityManagerFactory instance for " + persUnitName);
-			emFactory = Persistence.createEntityManagerFactory(persUnitName);
-			if (emFactory == null) {
-				logger.error("Error creating a EntityManagerFactory instance for " + persUnitName + " after " + (System.currentTimeMillis() - startTime));
-			}
-			logger.debug("Created a EntityManagerFactory instance for " + persUnitName);
-		} catch (Exception e) {
-			logger.error("Error initializing DB com.toptal.calories.resources.entity after " + (System.currentTimeMillis() - startTime) + " ms", e);
-			throw new RuntimeException(e);
-		}
-		logger.warn("Finished initializing DB com.toptal.calories.resources.entity for " + persUnitName + " after " + (System.currentTimeMillis() - startTime) + " ms");
-		return emFactory;
-	}
-
-	protected synchronized static void closeAllConnections(EntityManagerFactory emFactory, String persUnitName) {
-		logger.warn(" entity manager factory closing all connections for " + persUnitName);
-		long startTime = System.currentTimeMillis();
-		if ( emFactory != null && emFactory.isOpen() ) {
-			emFactory.close();
-		}
-		logger.warn(" closed ALL connections for " + persUnitName + " in " + (System.currentTimeMillis()-startTime) + " ms");
-	}
-	
-	/**
-	 * Let the schema specific subclass return the entity manager factory (it has the factory associated 
-	 * with the right persistence unit)  
-	 * @return The entity manager factory
-	 */
-	protected abstract EntityManagerFactory getEntityManagerFactory();
-
-	/**
-	 * Logs the end of method message using the appropriate level - if it took too long, as a warning, otherwise using standardLevel.
-	 * @param msgTemplate The end of method message
-	 * @param startTime The time the method started being executed
-	 * @param standardLevel The level to use in case the method didn't take too long to execute. 
-	 */
-	protected void logEnd(String action, long startTime) {
-		long endTime = System.currentTimeMillis();
-		String msg = " finished " + action + " after " + (System.currentTimeMillis() - startTime) + " ms";
-		
-		if (endTime - startTime > MAX_TIME_DB_OPER_MS) {
-			logger.warn(msg);
-		} else {
-			logger.info(msg);
-		}
-		
-	}
-
 	/**
 	 * Returns a consistent "time-elapsed" message suffix. 
 	 * NOT A STATIC METHOD, TO AVOID SYNCHRONIZATION ISSUES AND MAINTAIN PERFORMANCE.
@@ -106,18 +51,6 @@ public abstract class BaseRepository<E extends BaseEntity> {
 	 */
 	protected String getWrapupMsg(long startTime) {
 		return " after " + (System.currentTimeMillis() - startTime) + " ms";
-	}
-
-	/** 
-	 * Returns the entity manager
-	 * @return
-	 */
-	protected EntityManager getEntityManager() {
-		logger.debug(" creating entity manager ");
-		long startTime = System.currentTimeMillis();
-		EntityManager em = getEntityManagerFactory().createEntityManager();
-		logEnd("creating entity manager", startTime);
-		return em;
 	}
 
 	/**
@@ -132,9 +65,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 			if (entity == null) {
 				throw new RepositoryException("Null object received for create or update!!");
 			} else {
-				EntityManager em = null; 
 				try {
-					em = getEntityManager();
 					em.getTransaction().begin();
 					createdOrUpdated = em.merge(entity);
 					em.getTransaction().commit();
@@ -145,10 +76,9 @@ public abstract class BaseRepository<E extends BaseEntity> {
 						if (em.getTransaction().isActive()) {
 							em.getTransaction().rollback();
 						}
-						em.close();
 					}
 				}
-				logEnd("creating " + entity, startTime);
+				LogUtil.logEnd(logger, "creating " + entity, startTime);
 				return createdOrUpdated;				
 			}
 		} catch (RepositoryException e) {
@@ -173,11 +103,9 @@ public abstract class BaseRepository<E extends BaseEntity> {
 			if (entities == null || entities.size() == 0) {
 				throw new RepositoryException("Null or empty collection received for create or update!!");
 			} else {
-				EntityManager em = null; 
 				createdOrUpdatedList = new ArrayList<E>(entities.size());
 				E entity = null;
 				try {
-					em = getEntityManager();
 					int operationsSinceLastCommit = 0;
 					E createdOrUpdated = null;
 					em.getTransaction().begin();
@@ -207,10 +135,9 @@ public abstract class BaseRepository<E extends BaseEntity> {
 						if (em.getTransaction().isActive()) {
 							em.getTransaction().rollback();
 						}
-						em.close();
 					}
 				}
-				logEnd(" creating or updating batch containing " + (entities == null || entities.size() == 0 ? "0" : entities.size()) + " entities", startTime);
+				LogUtil.logEnd(logger, " creating or updating batch containing " + (entities == null || entities.size() == 0 ? "0" : entities.size()) + " entities", startTime);
 				return createdOrUpdatedList;				
 			}
 		} catch (RepositoryException e) {
@@ -237,10 +164,9 @@ public abstract class BaseRepository<E extends BaseEntity> {
 			if (id == null) {
 				throw new RepositoryException("Null ID received for find " + className);
 			} else {
-				EntityManager em = null; 
+				em.clear();
 				try {
-					em = getEntityManager();
-					entity = find(id, em, modelEntityType);
+					entity = find(id, modelEntityType);
 				} catch (PersistenceException pe) {
 					throw new RepositoryException("Error in find for " + className +  " with ID " + id + ": " + pe.getMessage(), pe);
 				} finally {
@@ -248,11 +174,10 @@ public abstract class BaseRepository<E extends BaseEntity> {
 						if (em.getTransaction().isActive()) {
 							em.getTransaction().rollback();
 						}
-						em.close();
 					}
 				}
 			}
-			logEnd(" finding " + className + " with ID \"" + id + "\"", startTime);
+			LogUtil.logEnd(logger, " finding " + className + " with ID \"" + id + "\"", startTime);
 			return entity;
 		} catch (RepositoryException e) {
 			logger.error(e.getMessage() + getWrapupMsg(startTime) + "; rootCause: " + ExceptionUtils.getRootCauseMessage(e));
@@ -267,7 +192,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 	 * @param entityType The type of the entity to return.
 	 * @return The entity associated with the input ID.
 	 */
-	protected E find(Object id, EntityManager em, Class<E> entityType) throws RepositoryException {
+	protected E find(Object id, Class<E> entityType) throws RepositoryException {
 		E entity = null; 
 		try{
 			entity = em.find(entityType, id);
@@ -306,9 +231,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 
 		logger.info("Finding all " + className + "s");
 		
-		EntityManager em = null;
 		try{
-			em = getEntityManager();
 			entities = em.createNamedQuery(className + ".findAll").getResultList();
 		} catch(javax.persistence.NoResultException nre) {
 			// do nothing, will just return null 
@@ -319,10 +242,9 @@ public abstract class BaseRepository<E extends BaseEntity> {
 				if (em.getTransaction().isActive()) {
 					em.getTransaction().rollback();
 				}
-				em.close();
 			}
 		}
-		logEnd(" finding all " + className + "s", startTime);
+		LogUtil.logEnd(logger, " finding all " + className + "s", startTime);
 		
 		return entities;
 	}
@@ -351,21 +273,15 @@ public abstract class BaseRepository<E extends BaseEntity> {
 		logger.info("Deleting all " + className + "s");
 		int deletedEntries = 0;
 		try {
-				EntityManager em = null; 
 				try {
-					em = getEntityManager();
 					em.getTransaction().begin();
 					deletedEntries = em.createNamedQuery(className+".deleteAll")
 										.executeUpdate();
 					em.getTransaction().commit();
 				} catch (PersistenceException pe) {
 					throw new RepositoryException("Error in delete all for "+className, pe);
-				} finally {
-					if (em != null && em.isOpen()) {
-						em.close();
-					}
 				}
-				logEnd(" deleting all " + className + "s: " + deletedEntries + " entries deleted", startTime);
+				LogUtil.logEnd(logger, " deleting all " + className + "s: " + deletedEntries + " entries deleted", startTime);
 				return deletedEntries;
 		} catch (RepositoryException e) {
 			logger.error(e.getMessage() + getWrapupMsg(startTime) + "; rootCause: " + ExceptionUtils.getRootCauseMessage(e));
@@ -387,9 +303,11 @@ public abstract class BaseRepository<E extends BaseEntity> {
 	 * Removes the entity with the informed ID from the database.
 	 * @param id The entity's ID.
 	 */
-	public void remove(Object id) throws RepositoryException {
+	public boolean remove(Object id) throws RepositoryException {
 		long startTime = System.currentTimeMillis();
 
+		boolean removed = false;
+		
 		Class<E> modelEntityType = associatedEntityType;
 		String className = modelEntityType.getSimpleName();
 		logger.info("Removing " + className + " with ID \"" + id + "\"");
@@ -397,20 +315,19 @@ public abstract class BaseRepository<E extends BaseEntity> {
 			if (id == null) {
 				throw new RepositoryException("Null " + className + " id!!");
 			} else {
-				EntityManager em = null;
 				try {
-					em = getEntityManager();
-					E entity = find(id, em, modelEntityType);
-					if (entity == null) {
-						throw new RepositoryException("Invalid " + className + " ID: " + id);
+					E entity = find(id, modelEntityType);
+					if (entity != null) {
+						em.getTransaction().begin();
+						
+						// give subclasses a chance to do something before the entity is removed
+						beforeDelete(entity);
+						
+						em.remove(entity);
+						em.getTransaction().commit();
+						
+						removed = true;
 					}
-					em.getTransaction().begin();
-					
-					// give subclasses a chance to do something before the entity is removed
-					beforeDelete(entity);
-					
-					em.remove(entity);
-					em.getTransaction().commit();
 				} catch (PersistenceException pe) {
 					throw new RepositoryException("Error in remove of " + className + " with ID " + id + ": " + pe.getMessage(), pe);
 				} finally {
@@ -418,15 +335,16 @@ public abstract class BaseRepository<E extends BaseEntity> {
 						if (em.getTransaction().isActive()) {
 							em.getTransaction().rollback();
 						}
-						em.close();
 					}
 				}
-				logEnd(" removing " + className + " with ID \"" + id + "\"", startTime);
+				LogUtil.logEnd(logger, " removing " + className + " with ID \"" + id + "\"", startTime);
 			}
 		} catch (RepositoryException e) {
 			logger.error(e.getMessage() + getWrapupMsg(startTime) + "; rootCause: " + ExceptionUtils.getRootCauseMessage(e));
 			throw e;
 		}
+		
+		return removed;
 	}
 	
 }

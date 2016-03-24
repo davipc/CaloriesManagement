@@ -1,4 +1,11 @@
-- maven (from ant)
-- JPA -> generate tables from entity
-- Hibernate JPA provider (from EJB3 provider)
-- Repository pattern
+- maven
+	- test process
+	- build process
+	- project structure 
+- JPA 
+	- generate tables from entity
+	- Hibernate JPA provider (from EJB3 provider)
+- Genson (JSON auto serialization/deserialization)
+	- only works on entities with Cyclic relationships if field is annotated @XMLTransient and entity's access type is FIELD)
+	- doesn't recognize @XMLRoot and @XmlType annotations) 
+- Weld (CDI, did not work on Tomcat 8 and JSE8 combo)

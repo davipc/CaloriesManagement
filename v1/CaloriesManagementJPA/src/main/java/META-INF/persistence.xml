@@ -25,21 +25,19 @@ xsi:schemaLocation="http://java.sun.com/xml/ns/persistence file:/D:/Estudo/works
 			<property name="hibernate.show_sql" value="true" />
 			<property name="hibernate.format_sql" value="true" />
 			<property name="use_sql_comments" value="true" />
-			-->
+			 -->
 			<!--  End of Debug Configuration -->
 			
-			<!-- DEV SERVER -->
 			<property name="hibernate.connection.driver_class" value="org.postgresql.Driver" />
 			<property name="hibernate.connection.url" value="jdbc:postgresql://127.0.0.1:5432/toptal_calories" />
 			<property name="hibernate.connection.username" value="toptal_calories" />
 			<property name="hibernate.connection.password" value="password" />
-			<!--  -->
 						
 			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
 			<property name="hibernate.connection.provider_class" value="org.hibernate.connection.C3P0ConnectionProvider" />
 			<property name="hibernate.hbm2ddl.auto" value="update" />
-			<property name="hibernate.c3p0.max_size" value="2" />
-			<property name="hibernate.c3p0.min_size" value="1" />
+			<property name="hibernate.c3p0.max_size" value="50" />
+			<property name="hibernate.c3p0.min_size" value="4" />
 			<property name="hibernate.c3p0.acquire_increment" value="1" />
 			<property name="hibernate.c3p0.idle_test_period" value="300" />
 			<property name="hibernate.c3p0.max_statements" value="10" />

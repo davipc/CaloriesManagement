@@ -7,18 +7,24 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
-
-import com.toptal.calories.resources.BaseEntity;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 
 /**
  * The persistent class for the role database table.
  * 
  */
+
+@XmlRootElement(name = "user")
+@XmlType(propOrder = {"id", "name"})
+@XmlAccessorType(XmlAccessType.FIELD)
+
 @Entity
 @NamedQuery(name="Role.findAll", query="SELECT r FROM Role r")
 public class Role extends BaseEntity {
-	//private static final long serialVersionUID = 1L;
 
 	@Id
 	@SequenceGenerator(name="role_id_seq", sequenceName="role_id_seq", allocationSize=1)
@@ -26,11 +32,12 @@ public class Role extends BaseEntity {
 	@Column(name = "id", updatable=false, nullable=false)	
 	private Integer id;
 
-	@Column(nullable=false)
+	// this field can never be modified by other entities updates
+	@Column(nullable=false, length=20, updatable=false)
 	private String name;
 
-	//bi-directional many-to-many association to User
 	/** not really needed
+	//bi-directional many-to-many association to User
 	@ManyToMany
 	@JoinTable(
 		name="user_role"

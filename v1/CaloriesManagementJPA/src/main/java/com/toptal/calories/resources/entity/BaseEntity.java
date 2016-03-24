@@ -1,4 +1,4 @@
-package com.toptal.calories.resources;
+package com.toptal.calories.resources.entity;
 
 public abstract class BaseEntity {
 	

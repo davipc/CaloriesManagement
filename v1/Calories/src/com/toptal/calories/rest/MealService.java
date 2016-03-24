@@ -1,43 +1,61 @@
 package com.toptal.calories.rest;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.toptal.calories.resources.RepositoryException;
 import com.toptal.calories.resources.entity.Meal;
 import com.toptal.calories.resources.repository.Meals;
+import com.toptal.calories.resources.repository.RepositoryException;
+import com.toptal.calories.resources.repository.RepositoryFactory;
 
 @Path("/meals")
 public class MealService {
 	
 	private Logger logger = LoggerFactory.getLogger(MealService.class);
 
-	//@Inject
-	private Meals meals = new Meals();
+	 @Context
+	 private HttpServletRequest httpRequest;	
+	
+	private Meals meals = new RepositoryFactory().createRepository(Meals.class, 1);
 
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
 	@Path("{id}")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Meal getMeal(@PathParam("id") int mealId) throws RepositoryException {
 		logger.debug("Looking for meal with ID " + mealId); 
 		
+		// TODO: FOR DEBUGGING, REMOVE IT
+		// TODO: FIND A UNIQUE IDENTIFIER FOR THE REQUEST TO USE IN Repository CONSTRUCTION
+		if (httpRequest == null) {
+			logger.debug("Request object is null!");
+		} else {
+			logger.debug("Session ID: " + httpRequest.getRequestedSessionId());
+			logger.debug("Request Date: " + httpRequest.getDateHeader("Date"));
+		}
+		
+		if (meals == null) {
+			logger.error("Meals ainda e null!!");
+		}
+		// TODO: END OF FOR DEBUGGING, REMOVE IT
+
 		Meal meal = meals.find(mealId);
 		
 		if (meal == null) {
 			logger.debug("No meals found for meal with ID " + mealId);
-	        throw new WebApplicationException(Status.NOT_FOUND);
+	        throw new NotFoundException();
 	    }
 
 		logger.debug("Meal found for ID " + mealId);
@@ -46,47 +64,56 @@ public class MealService {
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void createMeal(Meal meal) throws RepositoryException {
+	@Produces(MediaType.APPLICATION_JSON)
+	public Meal createMeal(Meal meal) throws RepositoryException {
 		logger.debug("Persisting meal " + meal); 
 		
-		meal = meals.createOrUpdate(meal);
+		Meal createdMeal = meals.createOrUpdate(meal);
 		
-		if (meal == null) {
+		if (createdMeal == null) {
 			logger.debug("Error persisting meal " + meal);
-	        throw new WebApplicationException(Status.NOT_FOUND);
+	        throw new NotFoundException();
 	    }
 
-		logger.debug("Finished persisting " + meal);
+		logger.debug("Finished persisting meal " + meal);
+		
+		return createdMeal;
 	}
 
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void updateMeal(Meal meal) throws RepositoryException {
+	@Produces(MediaType.APPLICATION_JSON)
+	public Meal updateMeal(Meal meal) throws RepositoryException {
 		logger.debug("Updating meal " + meal); 
 		
-		meal = meals.createOrUpdate(meal);
+		Meal updatedMeal = meals.createOrUpdate(meal);
 		
-		if (meal == null) {
+		if (updatedMeal == null) {
 			logger.debug("Error updating meal " + meal);
-	        throw new WebApplicationException(Status.NOT_FOUND);
+	        throw new NotFoundException();
 	    }
 
-		logger.debug("Finished updating " + meal);
+		logger.debug("Finished updating meal " + meal);
+		
+		return updatedMeal;
 	}
 	
 	@DELETE
 	@Path("{id}")
-	public void deleteMeal(@PathParam("id") int mealId) throws RepositoryException {
+	@Produces(MediaType.APPLICATION_JSON)
+	public boolean deleteMeal(@PathParam("id") int mealId) throws RepositoryException {
 		logger.debug("Deleting meal with ID " + mealId); 
 		
+		boolean removed = false;
 		try {
-			meals.remove(mealId);
+			removed = meals.remove(mealId);
 		} catch (RepositoryException re) {
 			logger.debug("Error deleting meal with ID " + mealId);
 			throw re;
 		}
 		
-		logger.debug("Finished deleting meal with ID " + mealId);
+		logger.debug("Finished deleting meal with ID " + mealId + ": " + (removed ? "successfully deleted": "did not exist"));
+		
+		return removed;
 	}
-	
 }

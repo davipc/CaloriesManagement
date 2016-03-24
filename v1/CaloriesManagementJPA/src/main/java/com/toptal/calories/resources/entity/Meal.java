@@ -4,10 +4,14 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
@@ -15,8 +19,10 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
-
-import com.toptal.calories.resources.BaseEntity;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  * The persistent class for the meal database table.
@@ -36,6 +42,12 @@ import com.toptal.calories.resources.BaseEntity;
  *  - queries will be simpler
  *  
  */
+
+
+@XmlRootElement(name = "meal")
+@XmlType(propOrder = {"id", "user", "mealDate","mealTime","description", "calories"})
+@XmlAccessorType(XmlAccessType.FIELD)
+
 @Entity
 @Table(
 		uniqueConstraints={@UniqueConstraint(name = "Meal_UNIQ", columnNames = {"user_id" , "meal_date", "meal_time"})},
@@ -43,15 +55,12 @@ import com.toptal.calories.resources.BaseEntity;
 })
 @NamedQueries ({
 	@NamedQuery(name="Meal.findAll", query="SELECT m FROM Meal m"),
-	@NamedQuery(name="Meal.findByUserId", query="SELECT m FROM Meal m where m.userId = :userId"),
+	@NamedQuery(name="Meal.findByUserId", query="SELECT m FROM Meal m where m.user.id = :userId"),
 	@NamedQuery(name="Meal.findInDateAndTimeRange", 
-			query="SELECT m FROM Meal m "
-					+ "where m.userId = :userId and m.mealDate between :startDate and :endDate "
-					+ "and m.mealTime between :startTime and :endTime")
+			query="SELECT m FROM Meal m where m.user.id = :userId and m.mealDate between :startDate and :endDate and m.mealTime between :startTime and :endTime")
 })
 
 public class Meal extends BaseEntity {
-	//private static final long serialVersionUID = 1L;
 
 	@Id
 	@SequenceGenerator(name="meal_id_seq", sequenceName="meal_id_seq", allocationSize=1)
@@ -59,9 +68,10 @@ public class Meal extends BaseEntity {
 	@Column(name = "id", updatable=false, nullable=false)	
 	private Integer id;
 
-	@Column(name="user_id", nullable=false)
-	private Integer userId;
-
+	@ManyToOne(fetch=FetchType.EAGER)
+    @JoinColumn(name="user_id", nullable=false, foreignKey = @ForeignKey(name = "Meal_User_FK"))
+    private User user;
+	
 	@Column(name="meal_date", nullable=false)
 	@Temporal(TemporalType.DATE)
 	private Date mealDate;
@@ -70,7 +80,7 @@ public class Meal extends BaseEntity {
 	@Temporal(TemporalType.TIME)
 	private Date mealTime;
 
-	@Column(nullable=false)
+	@Column(nullable=false, length=200)
 	private String description;
 
 	@Column(nullable=false)
@@ -119,12 +129,12 @@ public class Meal extends BaseEntity {
 		this.mealTime = mealTime;
 	}
 
-	public Integer getUserId() {
-		return this.userId;
+	public User getUser() {
+		return this.user;
 	}
 
-	public void setUserId(Integer userId) {
-		this.userId = userId;
+	public void setUser(User user) {
+		this.user = user;
 	}
 
 	@Override
@@ -137,7 +147,7 @@ public class Meal extends BaseEntity {
 			//System.out.println("Comparing " + mealDate + " to " + new Date(other.getMealDate().getTime()));
 			//System.out.println("Comparing " + mealTime + " to " + new Date(other.getMealTime().getTime()));
 			result = areEqual(other.getId(), getId()) &&
-					areEqual(other.getUserId(), getUserId()) &&
+					areEqual(other.getUser(), getUser()) &&
 					areEqual(other.getMealDate(), getMealDate()) &&
 					areEqual(other.getMealTime(), getMealTime()) &&
 					areEqual(other.getDescription(), getDescription()) &&
@@ -149,7 +159,7 @@ public class Meal extends BaseEntity {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder().append("Meal [Id: ").append(id)
-			.append(", userId: ").append(userId)
+			.append(", user: {").append(user).append("}")
 			.append(", mealDate: ").append(mealDate)
 			.append(", mealTime: ").append(mealTime)
 			.append(", description: ").append(description)
