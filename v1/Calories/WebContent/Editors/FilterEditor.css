@@ -1,0 +1,45 @@
+		.modal-header {
+			background-color: #f5f5f5;
+			border-color: #ddd;
+		}
+		#list {
+			list-style: none;
+			padding-left: 0;
+		}
+ 
+		#list .sort-handle {
+			display: none;
+		}
+		
+ 		#list .button-handle {
+			display: none;
+		}
+		#list .ui-selected .button-handle{
+			display: inline;
+			cursor: pointer;
+		}
+		#list .ui-selected .sort-handle
+		{
+			display: inline;
+			padding: 0 0.5em;
+			cursor: pointer;
+		}
+		#list .btn {
+		 padding: 0px 0px;
+		  margin-right: 5px;
+		}
+		li.ui-selected {
+			background-color: #8888cc;
+			color: white;
+			font-weight: bold;
+			background-image: none;
+		}
+		li.ui-selecting {
+			background-color: #ccccff;
+			color: white;
+			background-image: none;
+		}
+		OL {
+			margin: 0px 0px;
+			padding: 0 0.5em;
+		}

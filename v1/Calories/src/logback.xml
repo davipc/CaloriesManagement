@@ -43,6 +43,10 @@
 		<appender-ref ref="STDOUT" />
 	</logger>
 
+	<logger name="com.toptal.calories.web" level="DEBUG" >
+		<appender-ref ref="STDOUT" />
+	</logger>
+
 	<logger name="org.glassfish.jersey" level="DEBUG" >
 	</logger>
 

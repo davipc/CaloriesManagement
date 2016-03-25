@@ -53,10 +53,6 @@ public class UserService {
 	public User getUser(@PathParam("id") int userId) throws RepositoryException {
 		logger.debug("Looking for user with ID " + userId); 
 		
-		if (users == null) {
-			logger.error("Users ainda e null!!");
-		}
-		
 		User user = users.find(userId);
 		
 		if (user == null) {
