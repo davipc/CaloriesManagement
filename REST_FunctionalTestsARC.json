@@ -1,0 +1,179 @@
+{  
+   "projects":[  
+      {  
+         "id":1,
+         "name":"Toptal Calories Rest V1",
+         "created":1458849232250
+      }
+   ],
+   "requests":[  
+      {  
+         "id":57,
+         "encoding":"",
+         "headers":"",
+         "method":"GET",
+         "name":"Role Get - All",
+         "payload":"",
+         "project":1,
+         "time":1458830308735,
+         "url":"http://localhost:8080/CaloriesWeb/api/v1/roles/",
+         "driveId":""
+      },
+      {  
+         "id":106,
+         "encoding":"",
+         "headers":"",
+         "method":"GET",
+         "name":"Meal Get - User and Date and Time Ranges",
+         "payload":"",
+         "project":1,
+         "time":1458849219557,
+         "url":"http://localhost:8080/CaloriesWeb/api/v1/users/2/meals?fromDate=201-12-30&toDate=2016-01-23&fromTime=21:00&toTime=21:58",
+         "driveId":""
+      },
+      {  
+         "id":102,
+         "encoding":"",
+         "headers":"",
+         "method":"GET",
+         "name":"Meal Get - User",
+         "payload":"",
+         "project":1,
+         "time":1458848971997,
+         "url":"http://localhost:8080/CaloriesWeb/api/v1/users/2/meals",
+         "driveId":""
+      },
+      {  
+         "id":96,
+         "encoding":"",
+         "headers":"Content-Type: application/json",
+         "method":"DELETE",
+         "name":"Meal Delete",
+         "payload":"",
+         "project":1,
+         "time":1458848662360,
+         "url":" http://localhost:8080/CaloriesWeb/api/v1/meals/9",
+         "driveId":""
+      },
+      {  
+         "id":83,
+         "encoding":"",
+         "headers":"Content-Type: application/json",
+         "method":"PUT",
+         "name":"Meal Put",
+         "payload":"{\"id\":3, \"user\":{\"id\":2},\"mealDate\":1453420147746,\"mealTime\":1458521947146,\"description\":\"REST meal description 2\",\"calories\":470}",
+         "project":1,
+         "time":1458847446266,
+         "url":" http://localhost:8080/CaloriesWeb/api/v1/meals/",
+         "driveId":""
+      },
+      {  
+         "id":47,
+         "encoding":"",
+         "headers":"Content-Type: application/json",
+         "method":"POST",
+         "name":"Meal Post",
+         "payload":"{\"user\":{\"id\":2},\"mealDate\":1453420147746,\"mealTime\":1458521847146,\"description\":\"REST meal description\",\"calories\":580}",
+         "project":1,
+         "time":1458848585802,
+         "url":" http://localhost:8080/CaloriesWeb/api/v1/meals/",
+         "driveId":""
+      },
+      {  
+         "id":46,
+         "encoding":"",
+         "headers":"",
+         "method":"GET",
+         "name":"Meal Get",
+         "payload":"",
+         "project":1,
+         "time":1458696632612,
+         "url":"http://localhost:8080/CaloriesWeb/api/v1/meals/123108",
+         "driveId":""
+      },
+      {  
+         "id":65,
+         "encoding":"",
+         "headers":"Content-Type: application/json",
+         "method":"POST",
+         "name":"User Auth",
+         "payload":"{\"login\":\"dcavalca\",\"password\":\"password\"}",
+         "project":1,
+         "time":1458828567281,
+         "url":"http://localhost:8080/CaloriesWeb/api/v1/users/auth",
+         "driveId":""
+      },
+      {  
+         "id":77,
+         "encoding":"",
+         "headers":"Content-Type: application/json",
+         "method":"DELETE",
+         "name":"User Delete",
+         "payload":"",
+         "project":1,
+         "time":1458831949877,
+         "url":"http://localhost:8080/CaloriesWeb/api/v1/users/1",
+         "driveId":""
+      },
+      {  
+         "id":75,
+         "encoding":"",
+         "headers":"Content-Type: application/json",
+         "method":"PUT",
+         "name":"User Put - no password",
+         "payload":"{\"id\":1,\"login\":\"dcavalca\",\"name\":\"Davi P Cavalcanti\",\"gender\":\"M\",\"dailyCalories\":2409,\"roles\":[{\"id\":1}],\"creationDt\":\"2016-03-21\"}",
+         "project":1,
+         "time":1458831845677,
+         "url":"http://localhost:8080/CaloriesWeb/api/v1/users/",
+         "driveId":""
+      },
+      {  
+         "id":68,
+         "encoding":"",
+         "headers":"Content-Type: application/json",
+         "method":"PUT",
+         "name":"User Put - with password",
+         "payload":"{\"id\":1,\"login\":\"dcavalca\",\"password\":\"password2\",\"name\":\"Davi Cavalcanti\",\"gender\":\"M\",\"dailyCalories\":2501,\"roles\":[{\"id\":2},{\"id\":3}],\"creationDt\":\"2016-03-21\"}",
+         "project":1,
+         "time":1458831629561,
+         "url":"http://localhost:8080/CaloriesWeb/api/v1/users/",
+         "driveId":""
+      },
+      {  
+         "id":56,
+         "encoding":"",
+         "headers":"Content-Type: application/json",
+         "method":"POST",
+         "name":"User Post",
+         "payload":"{\"login\":\"dcavalca\",\"password\":\"password\",\"name\":\"Davi Cavalcanti\",\"gender\":\"M\",\"dailyCalories\":2000,\"roles\":[{\"id\":1},{\"id\":2},{\"id\":3}],\"creationDt\":\"2016-03-21\"}",
+         "project":1,
+         "time":1458831245923,
+         "url":"http://localhost:8080/CaloriesWeb/api/v1/users/",
+         "driveId":""
+      },
+      {  
+         "id":60,
+         "encoding":"",
+         "headers":"",
+         "method":"GET",
+         "name":"User Get - All",
+         "payload":"",
+         "project":1,
+         "time":1458827762480,
+         "url":"http://localhost:8080/CaloriesWeb/api/v1/users/",
+         "driveId":""
+      },
+      {  
+         "id":59,
+         "encoding":"",
+         "headers":"",
+         "method":"GET",
+         "name":"User Get",
+         "payload":"",
+         "project":1,
+         "time":1458827645941,
+         "url":"http://localhost:8080/CaloriesWeb/api/v1/users/1",
+         "driveId":""
+      }
+   ]
+}
