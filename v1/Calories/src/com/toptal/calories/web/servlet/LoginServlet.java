@@ -128,8 +128,6 @@ public class LoginServlet extends HttpServlet{
 	                .post(Entity.json(sentJSON), String.class);
 	
 			authUser = objectMapper.readValue(response, User.class);
-			
-			System.out.println(authUser);
 		} catch (JsonProcessingException e) {
 			logger.error("Error generating User JSON from object: " + e.getMessage(), e);
 		} catch (IOException e) {
