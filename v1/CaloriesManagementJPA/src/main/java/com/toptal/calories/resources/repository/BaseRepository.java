@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceException;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -69,8 +68,8 @@ public abstract class BaseRepository<E extends BaseEntity> {
 					em.getTransaction().begin();
 					createdOrUpdated = em.merge(entity);
 					em.getTransaction().commit();
-				} catch (PersistenceException pe) {
-					throw new RepositoryException("Error in create or update of " + entity, pe);
+				} catch (Exception e) {
+					throw new RepositoryException("Error in create or update of " + entity, e);
 				} finally {
 					if (em != null && em.isOpen()) {
 						if (em.getTransaction().isActive()) {
@@ -128,7 +127,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 					if (em.getTransaction().isActive()) { 
 						em.getTransaction().commit();
 					}
-				} catch (PersistenceException pe) {
+				} catch (Exception pe) {
 					throw new RepositoryException("Error in create or update of " + entity, pe);
 				} finally {
 					if (em != null && em.isOpen()) {
@@ -167,7 +166,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 				em.clear();
 				try {
 					entity = find(id, modelEntityType);
-				} catch (PersistenceException pe) {
+				} catch (Exception pe) {
 					throw new RepositoryException("Error in find for " + className +  " with ID " + id + ": " + pe.getMessage(), pe);
 				} finally {
 					if (em != null && em.isOpen()) {
@@ -198,7 +197,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 			entity = em.find(entityType, id);
 		} catch(javax.persistence.NoResultException nre) {
 			// do nothing, will just return null 
-		} catch (PersistenceException pe) {
+		} catch (Exception pe) {
 			throw new RepositoryException("Error in find for " + entityType.getSimpleName() + " with ID " + id + ": " + pe.getMessage(), pe);
 		}
 		return entity;
@@ -235,7 +234,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 			entities = em.createNamedQuery(className + ".findAll").getResultList();
 		} catch(javax.persistence.NoResultException nre) {
 			// do nothing, will just return null 
-		} catch (PersistenceException pe) {
+		} catch (Exception pe) {
 			throw new RepositoryException("Error in find all " + className + "s: " + pe.getMessage() + getWrapupMsg(startTime), pe);
 		} finally {
 			if (em != null && em.isOpen()) {
@@ -278,7 +277,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 					deletedEntries = em.createNamedQuery(className+".deleteAll")
 										.executeUpdate();
 					em.getTransaction().commit();
-				} catch (PersistenceException pe) {
+				} catch (Exception pe) {
 					throw new RepositoryException("Error in delete all for "+className, pe);
 				}
 				LogUtil.logEnd(logger, " deleting all " + className + "s: " + deletedEntries + " entries deleted", startTime);
@@ -328,7 +327,7 @@ public abstract class BaseRepository<E extends BaseEntity> {
 						
 						removed = true;
 					}
-				} catch (PersistenceException pe) {
+				} catch (Exception pe) {
 					throw new RepositoryException("Error in remove of " + className + " with ID " + id + ": " + pe.getMessage(), pe);
 				} finally {
 					if (em != null && em.isOpen()) {

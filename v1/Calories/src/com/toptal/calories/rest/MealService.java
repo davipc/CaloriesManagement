@@ -1,6 +1,7 @@
 package com.toptal.calories.rest;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -29,7 +30,11 @@ public class MealService {
 	@Context
 	private HttpServletRequest httpRequest;	
 	
-	private Meals meals = new RepositoryFactory().createRepository(Meals.class, httpRequest);
+	@Context
+	private HttpServletResponse response;
+
+	
+	private Meals meals = new RepositoryFactory().createRepository(Meals.class, System.currentTimeMillis());
 
 	@GET
 	@Path("{id}")
@@ -67,6 +72,12 @@ public class MealService {
 	        throw new NotFoundException();
 	    }
 
+		//set HTTP code to "201 Created"
+	    response.setStatus(HttpServletResponse.SC_CREATED);
+	    try {
+	        response.flushBuffer();
+	    }catch(Exception e){}		
+		
 		logger.debug("Finished persisting meal " + meal);
 		
 		return createdMeal;
@@ -85,6 +96,12 @@ public class MealService {
 	        throw new NotFoundException();
 	    }
 
+		//set HTTP code to "200 OK" since we are returning content
+	    response.setStatus(HttpServletResponse.SC_OK);
+	    try {
+	        response.flushBuffer();
+	    }catch(Exception e){}		
+		
 		logger.debug("Finished updating meal " + meal);
 		
 		return updatedMeal;
@@ -103,6 +120,12 @@ public class MealService {
 			logger.debug("Error deleting meal with ID " + mealId);
 			throw re;
 		}
+		
+		//set HTTP code to "200 OK" since we are returning content
+	    response.setStatus(HttpServletResponse.SC_OK);
+	    try {
+	        response.flushBuffer();
+	    }catch(Exception e){}		
 		
 		logger.debug("Finished deleting meal with ID " + mealId + ": " + (removed ? "successfully deleted": "did not exist"));
 		

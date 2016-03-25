@@ -177,7 +177,12 @@ public class User extends BaseEntity {
 		if (obj != null && obj instanceof User) {
 			User other = (User) obj;
 			result = areEqual(other.getId(), getId()) &&
-					areEqual(other.getName(), getName());
+					areEqual(other.getLogin(), getLogin()) &&
+					areEqual(other.getPassword(), getPassword()) &&
+					areEqual(other.getName(), getName()) &&
+					areEqual(other.getGender(), getGender()) &&
+					areEqual(other.getDailyCalories(), getDailyCalories()) &&
+					areEqual(other.getCreationDt(), getCreationDt());
 			
 			if (result) {
 				List<Role> otherRoles = other.getRoles();
@@ -198,7 +203,12 @@ public class User extends BaseEntity {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder().append("User [Id: ").append(id)
+			.append(", login: ").append(login)
+			.append(", password: ").append("**********")
 			.append(", name: ").append(name)
+			.append(", gender: ").append(gender)
+			.append(", dailyCalories: ").append(dailyCalories)
+			.append(", creationDt: ").append(creationDt)
 			.append(", Roles: { ");
 			
 		

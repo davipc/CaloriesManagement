@@ -81,8 +81,11 @@ public class RepositoryFactory {
 	throws IllegalArgumentException {
 		R repository = null;
 		
+		logger.info("Getting a new " + clazz.getName() + " instance");
+		
 		EntityManager em = currentEMs.get(requestId);
 		if (em == null) {
+			logger.debug("Entity Manager didn't exist, creating one");
 			em = getEntityManager();
 			currentEMs.put(requestId, em);
 		}
@@ -94,6 +97,8 @@ public class RepositoryFactory {
 			logger.error("Error creating new repository for " + clazz.getName(), e);
 			throw new IllegalArgumentException("Failed creating repository of provided type " + clazz, e);
 		}
+
+		logger.info("Finished getting a new " + clazz.getName() + " instance");
 		
 		return repository;
 	}

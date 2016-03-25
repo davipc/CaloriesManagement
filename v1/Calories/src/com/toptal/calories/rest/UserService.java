@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -40,7 +41,11 @@ public class UserService {
 	@Context
 	private HttpServletRequest httpRequest;	
 
-	private Users users = new RepositoryFactory().createRepository(Users.class, httpRequest);
+	@Context
+	private HttpServletResponse response;
+	
+	// TODO: fix second parameter so it is a key shared between all repositories and unique for this request
+	private Users users = new RepositoryFactory().createRepository(Users.class, System.currentTimeMillis());
 
 	@GET
 	@Path("{id}")
@@ -91,7 +96,13 @@ public class UserService {
 	        throw new NotFoundException();
 	    }
 
-		logger.debug("Finished persisting " + user);
+		//set HTTP code to "201 Created"
+	    response.setStatus(HttpServletResponse.SC_CREATED);
+	    try {
+	        response.flushBuffer();
+	    }catch(Exception e){}		
+
+	    logger.debug("Finished persisting " + user);
 		
 		return userCreated;
 	}
@@ -114,6 +125,12 @@ public class UserService {
 	        throw new NotFoundException();
 	    }
 
+		//set HTTP code to "200 OK" since we are returning content
+	    response.setStatus(HttpServletResponse.SC_OK);
+	    try {
+	        response.flushBuffer();
+	    }catch(Exception e){}		
+		
 		logger.debug("Finished updating " + user);
 		
 		return userUpdated;
@@ -134,6 +151,12 @@ public class UserService {
 			throw re;
 		}
 
+		//set HTTP code to "200 OK" since we are returning content
+	    response.setStatus(HttpServletResponse.SC_OK);
+	    try {
+	        response.flushBuffer();
+	    }catch(Exception e){}		
+		
 		logger.debug("Finished deleting user with ID " + userId);
 		return removed;
 	}
@@ -240,6 +263,12 @@ public class UserService {
 		// for both not found and not not authorized codes
 		if (!authenticated)
 			throw new NotAuthorizedException("Invalid password");
+		
+		//set HTTP code to "200 OK" since we are returning content
+	    response.setStatus(HttpServletResponse.SC_OK);
+	    try {
+	        response.flushBuffer();
+	    }catch(Exception e){}		
 		
 		logger.info("User " + user.getLogin() + " authentication "  + (authenticated ? "succeeded!" : "failed!" ));
 		

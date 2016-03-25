@@ -40,7 +40,7 @@ http://localhost:8080/CaloriesWeb/api/v1/users/
 
 {"login":"dcavalca","password":"password","name":"Davi Cavalcanti","gender":"M","dailyCalories":2000,"roles":[{"id":1},{"id":2},{"id":3}],"creationDt":"2016-03-21"}
 
-OK: 204
+OK: 201
 
 {"id":1,"login":"dcavalca","password":"XohImNooBHFR0OVvjcYpJ3NgPQ1qq73WKhHvch0VQtg=","name":"Davi Cavalcanti","gender":"M","dailyCalories":2000,"roles":[{"id":1,"name":"Admin"},{"id":2,"name":"Manager"},{"id":3,"name":"Default"}],"creationDt":1458518400000}
 
@@ -80,7 +80,7 @@ DELETE
 
 http://localhost:8080/CaloriesWeb/api/v1/users/1
 
-OK: 204
+OK: 200
 
 if found: true
 if not found: false

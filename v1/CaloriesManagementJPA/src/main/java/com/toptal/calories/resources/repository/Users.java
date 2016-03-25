@@ -145,7 +145,10 @@ public class Users extends BaseRepository<User> {
 				    if (user.getPassword() == null) {
 						final User existingUser = find(user.getId());
 
-						user.setPassword(existingUser.getPassword());
+						if (existingUser != null) {
+							user.setPassword(existingUser.getPassword());
+							// do nothing else, let the exception be thrown during the update attempt
+						}
 				    }						
 					
 				    updated = createOrUpdate(user);

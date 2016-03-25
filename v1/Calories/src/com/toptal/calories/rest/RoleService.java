@@ -3,6 +3,7 @@ package com.toptal.calories.rest;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -27,7 +28,10 @@ public class RoleService {
 	@Context
 	private HttpServletRequest httpRequest;	
 
-	private Roles roles = new RepositoryFactory().createRepository(Roles.class, httpRequest);
+	@Context
+	private HttpServletResponse response;
+	
+	private Roles roles = new RepositoryFactory().createRepository(Roles.class, System.currentTimeMillis());
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
