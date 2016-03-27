@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+
+<configuration scan="true" scanPeriod="30 seconds">
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>%d{MM/dd/yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+		</layout>
+	</appender>
+
+	<appender name="TOPTAL-FILE" class="ch.qos.logback.core.FileAppender">
+		<file>hibernate.log</file>
+		<append>true</append>
+		<!-- deny all events with a level below INFO, that is TRACE and DEBUG -->
+	    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+	      <level>INFO</level>
+	    </filter>		
+		<encoder>
+			<pattern>%d{MM/dd/yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="TOPTAL-SEVERE-FILE" class="ch.qos.logback.core.FileAppender">
+		<file>hibernate-severe.log</file>
+		<append>true</append>
+		<!-- deny all events with a level below ERROR -->
+	    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+	      <level>ERROR</level>
+	    </filter>		
+		<encoder>
+			<pattern>%d{MM/dd/yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="com.toptal.calories.resources" level="INFO" >
+		<appender-ref ref="TOPTAL-FILE" />
+		<appender-ref ref="TOPTAL-SEVERE-FILE" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="com.toptal.calories.rest" level="DEBUG" >
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="org.springframework.security" level="DEBUG" >
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<root level="DEBUG">
+		<!-- <appender-ref ref="STDOUT" /> -->
+	</root>
+</configuration>

@@ -1,0 +1,110 @@
+body {
+  margin: 30px;
+  font-family: "Georgia", serif;
+  line-height: 1.8em;
+  color: #333;
+}
+
+/* Give headings their own font */
+
+h1, h2, h3, h4 {
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+}
+
+/* Main content area */
+
+#content {
+  margin: 80px 70px;
+  text-align: center;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Header/footer boxes */
+
+.wideBox {
+  clear: both;
+  text-align: center;
+  margin: 70px;
+  padding: 10px;
+  background: #ebedf2;
+  border: 1px solid #333;
+}
+
+.wideBox h1 {
+  font-weight: bold;
+  margin: 20px;
+  color: #666;
+  font-size: 1.5em;
+}
+
+#cfgSlots, #shard1Slot, #shard2Slot ,#shard3Slot, #shard4Slot, #shard5Slot {
+  margin: 1px auto 0 auto;
+  background: #ddf;
+}
+
+/* The initial pile of unsorted cards */
+
+#cfgSlots, #shard1Slot, #shard2Slot ,#shard3Slot, #shard4Slot, #shard5Slot, #InventoryPile {
+  width: 910px;
+  height: 120px;
+  padding: 20px;
+  border: 2px solid #333;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  -moz-box-shadow: 0 0 .3em rgba(0, 0, 0, .8);
+  -webkit-box-shadow: 0 0 .3em rgba(0, 0, 0, .8);
+  box-shadow: 0 0 .3em rgba(0, 0, 0, .8);
+}
+
+/* Individual cards and slots */
+
+#cfgSlots div, #shard1Slot div, #shard2Slot div, #shard3Slot div, #shard4Slot div, #shard5Slot div, #InventoryPile div {
+  float: left;
+  width: 58px;
+  height: 78px;
+  padding: 10px;
+  padding-top: 40px;
+  padding-bottom: 0;
+  border: 2px solid #333;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  margin: 0 0 0 10px;
+  background: #fff;
+}
+
+#cfgSlots div:first-child, #shard1Slot div:first-child, #shard2Slot div:first-child, #shard3Slot div:first-child, #shard4Slot div:first-child, #shard5Slot div:first-child, #cardPile div:first-child, #InventoryPile div:first-child {
+  margin-left: 0;
+}
+
+#cfgSlots  div.hovered, #shard1Slot  div.hovered, #shard2Slot  div.hovered, #shard3Slot  div.hovered, #shard4Slot  div.hovered, #shard5Slot  div.hovered, #InventoryPile  div.hovered {
+  background: #aaa;
+}
+
+#cfgSlots div, #shard1Slot div, #shard2Slot div, #shard3Slot div, #shard4Slot div, #shard5Slot div {
+  border-style: dashed;
+}
+
+
+
+#InventoryPile {
+  margin: 0 auto;
+  background: #ffd;
+}
+
+
+#InventoryPile div {
+  background: #666;
+  color: #fff;
+  font-size: 50px;
+  text-shadow: 0 0 3px #000;
+}
+
+#InventoryPile div.ui-draggable-dragging {
+  -moz-box-shadow: 0 0 .5em rgba(0, 0, 0, .8);
+  -webkit-box-shadow: 0 0 .5em rgba(0, 0, 0, .8);
+  box-shadow: 0 0 .5em rgba(0, 0, 0, .8);
+}

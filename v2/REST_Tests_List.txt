@@ -1,0 +1,119 @@
+REST tests
+
+
+User Auth:
+
+- Missing login (400)
+- Missing password (400)
+- Bad login (401)
+- Bad password (401) 
+- Good login / password (200 + user)
+
+User Get by ID:
+
+- Bad ID (404)
+- Good ID (200 + user)
+
+User Get All:
+
+- No users  (404)
+- 1 user found (200 + user)
+- multple users found (200 + users)
+
+User Create: 
+
+- Missing login (400)
+- Login size > 12 (400)
+- Missing password (400)
+- Missing name (400)
+- Name size > 80 (400)
+- Missing Gender (400)
+- Missing Daily Calories (400)
+- Missing Created Date (400)
+- User ID is present (400)
+- login already used (400)
+- user saved (201 + user)
+
+User Update: 
+
+- Missing login (400)
+- Login size > 12 (400)
+- Missing name (400)
+- Name size > 80 (400)
+- Missing Gender (400)
+- Missing Daily Calories (400)
+- Missing Created Date (400)
+- User ID not present (400)
+- login changed and already used (400)
+- only password not provided (204 + user and password is kept)
+- password provided (204 + user and password is also changed)
+
+User Delete:
+
+- Bad ID (404)
+- Good ID with roles only (204)
+- Good ID with roles and meals(204)
+
+User Get Meals:
+
+- Bad format fromDate (404)
+- Bad format toDate (404)
+- Bad format fromTime (404)
+- Bad format toTime (404)
+- No date/time - Bad ID (404)
+- No date/time - Good ID no Meals (404)
+- No date/time - Good ID with one meal (200 + meal)
+- No date/time - Good ID with multiple meals (200 + meals)
+- With all date/time - Bad ID (404)
+- With all date/time - Good ID no Meals (404)
+- With all date/time - Good ID with one meal (200 + meal)
+- With all date/time - Good ID with multiple meals (200 + meals)
+- With fromDate only - Good ID with one meal (200 + meal)
+- With toDate only   - Good ID with one meal (200 + meal)
+- With fromTime only - Good ID with one meal (200 + meal)
+- With toTime only   - Good ID with one meal (200 + meal)
+- With fromDate and toTime only - Good ID with one meal (200 + meal)
+
+Roles Get All: 
+
+- No roles (404)
+- 1 role found (200 + role)
+- multple roles found (200 + roles)
+
+Meal Get by ID:
+
+- Bad ID (404)
+- Good ID (200 + meal)
+
+Meal Create: 
+
+- Missing user (400)
+- Missing user.Id (400)
+- Missing meal date (400)
+- Missing meal time (400)
+- Missing description (400)
+- Description size > 200 (400)
+- Missing calories (400)
+- Meal ID is present (400)
+- Bad User ID (400)
+- User ID + date + time already exists (400)
+- user saved (201 + user)
+
+Meal Update: 
+
+- Missing user (400)
+- Missing user.Id (400)
+- Missing meal date (400)
+- Missing meal time (400)
+- Missing description (400)
+- Description size > 200 (400)
+- Missing calories (400)
+- Meal ID is NOT present (400)
+- Bad User ID (400)
+- User ID + date + time changed and already used by another meal (400)
+- user saved (200 + user)
+
+Meal Delete:
+
+- Bad ID (404)
+- Good ID (204)
