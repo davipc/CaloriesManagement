@@ -11,7 +11,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Calories Management</title>
+    <title>Calories Management v2</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -47,7 +47,7 @@ String bookmark = request.getParameter("bookmark");
                         <h3 class="panel-title">Please Sign In</h3>
                     </div>
                     <div class="panel-body">
-                        <form role="form" method="POST" action="processLogin">
+                        <form role="form" method="POST" action="calendar/calendar_calories.html">
                             <fieldset>
                                 <div class="form-group">
                                     <input class="form-control" placeholder="Login" name="login"  autofocus>
