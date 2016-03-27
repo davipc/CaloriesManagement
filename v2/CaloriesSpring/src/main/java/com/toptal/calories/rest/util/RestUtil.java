@@ -85,10 +85,15 @@ public class RestUtil {
 	 * @return
 	 */
 	public static <E> List<E> makeList(Iterable<E> iter) {
-	    List<E> list = new ArrayList<E>();
-	    for (E item : iter) {
-	        list.add(item);
+	    List<E> list = null;
+	    
+	    if (iter != null) {
+		    list = new ArrayList<E>();
+		    for (E item : iter) {
+		        list.add(item);
+		    }
 	    }
+	    
 	    return list;
 	}	
 }

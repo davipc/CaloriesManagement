@@ -39,11 +39,11 @@
 		<appender-ref ref="STDOUT" />
 	</logger>
 
-	<logger name="com.toptal.calories.rest" level="DEBUG" >
+	<logger name="com.toptal.calories" level="DEBUG" >
 		<appender-ref ref="STDOUT" />
 	</logger>
 
-	<logger name="org.springframework.security" level="DEBUG" >
+	<logger name="org.springframework.security" level="INFO" >
 		<appender-ref ref="STDOUT" />
 	</logger>
 

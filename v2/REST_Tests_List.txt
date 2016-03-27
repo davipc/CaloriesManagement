@@ -117,3 +117,7 @@ Meal Delete:
 
 - Bad ID (404)
 - Good ID (204)
+
+
+Integration tests tutorial: http://g00glen00b.be/spring-boot-rest-assured/
+Unit tests tutorial: http://g00glen00b.be/unit-testing-mockito-assertj/
