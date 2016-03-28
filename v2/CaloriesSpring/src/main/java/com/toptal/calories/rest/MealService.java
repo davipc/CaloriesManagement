@@ -136,14 +136,14 @@ public class MealService extends ExceptionAwareService {
 	}
 	
 	@RequestMapping(value="{id}", method=RequestMethod.DELETE)
-	public void deleteMeal(@PathVariable int mealId, HttpServletResponse response) 
+	public void deleteMeal(@PathVariable int id, HttpServletResponse response) 
 	throws NotFoundException {
-		logger.debug("Deleting meal with ID " + mealId); 
+		logger.debug("Deleting meal with ID " + id); 
 		
 		try {
-			repository.delete(mealId);
+			repository.delete(id);
 		} catch (EmptyResultDataAccessException e) {
-			String msg = "Meal with ID " + mealId + " not found for delete";
+			String msg = "Meal with ID " + id + " not found for delete";
 			logger.debug(msg, e);
 			throw new NotFoundException(msg);
 		}
@@ -151,7 +151,7 @@ public class MealService extends ExceptionAwareService {
 		//set HTTP code to "204 NO CONTENT" since no content is returned
 	    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 		
-		logger.debug("Finished deleting meal with ID " + mealId);
+		logger.debug("Finished deleting meal with ID " + id);
 	}
 	
 }

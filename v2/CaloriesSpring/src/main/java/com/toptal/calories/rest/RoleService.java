@@ -33,12 +33,6 @@ public class RoleService extends ExceptionAwareService {
 		
 		List<Role> roles = RestUtil.makeList(repository.findAll());
 		
-		if (roles == null || roles.isEmpty()) {
-			String msg = "No roles found";
-			logger.debug(msg);
-			throw new NotFoundException(msg);
-	    } 
-
 		logger.debug("Roles found: " + roles.size());
 		return roles;
 	}

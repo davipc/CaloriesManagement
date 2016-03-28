@@ -48,12 +48,11 @@ public class AuthService extends ExceptionAwareService {
 		foundUser = repository.findByLogin(user.getLogin());
 		
 		if (foundUser == null) {
-			// we will return this response (and message), but the front end can inform the user the more secure message: "Invalid login/password" 
-			// for both not found and not not authorized codes
-			String msg = "No users found with login " + user.getLogin();
-			logger.info(msg);
+			// we could handle bad login and password cases differently (locking user after X attempts, etc), but since the service can be called 
+			// directly using any rest client (auth service is unsecured ) we will always return the more secure message: "Invalid login/password" 
+			logger.info("No users found with login " + user.getLogin());
 			try {
-				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, msg);
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid login/password");
 			} catch (IOException ioe) {
 				logger.warn("Error returning response error " + HttpServletResponse.SC_UNAUTHORIZED, ioe);
 			}
@@ -64,10 +63,15 @@ public class AuthService extends ExceptionAwareService {
 			
 			authenticated = providedPwdEnc.equals(foundUser.getPassword());
 			
-			// we will return this response (and message), but the front end can inform the user the more secure message: "Invalid login/password" 
-			// for both not found and not not authorized codes
+			// we could handle bad login and password cases differently (locking user after X attempts, etc), but since the service can be called 
+			// directly using any rest client (auth service is unsecured ) we will always return the more secure message: "Invalid login/password" 
 			if (!authenticated) {
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				logger.info("Bad password provided for user with login " + user.getLogin());
+				try {
+					response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid login/password");
+				} catch (IOException ioe) {
+					logger.warn("Error returning response error " + HttpServletResponse.SC_UNAUTHORIZED, ioe);
+				}
 				foundUser = null;
 			} else {
 				//set HTTP code to "200 OK" since we are returning content

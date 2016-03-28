@@ -61,12 +61,6 @@ public class UserService extends ExceptionAwareService {
 		
 		users = RestUtil.makeList(repository.findAll());
 
-		if (users == null || users.isEmpty()) {
-			String msg = "No users found";
-			logger.debug(msg);
-			throw new NotFoundException(msg);
-	    } 
-		
 		logger.debug("Users found: " + users.size());
 		
 		return users;
@@ -237,11 +231,6 @@ public class UserService extends ExceptionAwareService {
 		logger.debug("User found for ID " + userId);
 		
 		mealsFromUser = user.getMeals();
-		if (mealsFromUser == null || mealsFromUser.isEmpty()) {
-			String msg = "No meals found for user with ID " + userId;
-			logger.debug(msg);
-			throw new NotFoundException(msg);
-	    } 
 
     	logger.debug("Meals found for user with ID " + userId + ": "  + mealsFromUser.size());
 		
@@ -256,12 +245,6 @@ public class UserService extends ExceptionAwareService {
 		
 		List<Meal> mealsFromUser = repository.findMealsInDateAndTimeRange(userId, fromDate, toDate, fromTime, toTime);
 		
-		if (mealsFromUser == null || mealsFromUser.isEmpty()) {
-			String msg = "No meals found " + formattedString;
-			logger.debug(msg);
-			throw new NotFoundException(msg);
-	    } 
-	    
 		logger.debug("Meals found " + formattedString + ": "  + mealsFromUser.size());
 
 		return mealsFromUser;
