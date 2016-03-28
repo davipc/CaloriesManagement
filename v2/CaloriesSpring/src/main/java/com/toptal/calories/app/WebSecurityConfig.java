@@ -22,17 +22,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
     protected void configure(HttpSecurity http) throws Exception {
         logger.debug("Setting up security...");
-//		http
-//            .authorizeRequests()
-//                .antMatchers("/", "/login*", "/hello.html", "/api/v2/**", "/font-awesome-4.2.0/**", "/css/**", "/fonts/**", "/images/**", "/jquery/**", "/js/**", "/less/**").permitAll()
-//                .anyRequest().authenticated()
-//                .and()
-//            .formLogin()
-//                .loginPage("/login.jsp").passwordParameter("password").usernameParameter("login")
-//                .permitAll()
-//                .and()
-//            .logout()
-//                .permitAll();
 
         // will disable this security constraint so functional tests are less troublesome
     	// CSRF increases security by tying a session ID to the logged user's physical address
@@ -43,14 +32,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     	
     	http.authorizeRequests()
     			.antMatchers("/api/v2/auth").permitAll()
-                .antMatchers("/api/v2/**", "/index.html").access("hasRole('ROLE_Default') or hasRole('ROLE_Manager') or hasRole('ROLE_Admin')")
+                .antMatchers("/api/v2/**", "/index.html", "/calendarCalories.html").access("hasRole('ROLE_Default') or hasRole('ROLE_Manager') or hasRole('ROLE_Admin')")
                 .antMatchers("/userEdit.html").access ("hasRole('ROLE_Admin')")
-                .antMatchers("/calendarCalories.html").access ("hasRole('ROLE_Default') or hasRole('ROLE_Manager')")
             .and()
 	            // ATTENTION: For the form login to work, the attribute names must be EXACTLY these: username=<username>, password=<password> AND Submit=Login
 	            // IF YOU WANT THE 2 FIRST TO BE DIFFERENT, YOU HAVE TO SET IT LIKE THIS:
 	            //.formLogin().loginPage("/login.jsp").usernameParameter("<other name>").passwordParameter("<other name>");
-            	// also, the defaultSuccessUrl is forcing the user to always go to the index page
+            	// on a side note, the defaultSuccessUrl is forcing the user to always go to the index page
 	            .formLogin().loginPage("/login.jsp").defaultSuccessUrl("/index.html", true)
             .and().exceptionHandling().accessDeniedPage("/notAuthorized.html")
             .and().logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/login.jsp");
