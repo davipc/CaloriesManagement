@@ -42,6 +42,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     	http.csrf().disable();
     	
     	http.authorizeRequests()
+    			.antMatchers("/api/v2/auth").permitAll()
                 .antMatchers("/api/v2/**", "/index.html").access("hasRole('ROLE_Default') or hasRole('ROLE_Manager') or hasRole('ROLE_Admin')")
                 .antMatchers("/userEdit.html").access ("hasRole('ROLE_Admin')")
                 .antMatchers("/calendarCalories.html").access ("hasRole('ROLE_Default') or hasRole('ROLE_Manager')")
@@ -73,7 +74,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         
         logger.debug("Finished configuring authentication");
     }
-    
-    
-    
 }
