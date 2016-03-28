@@ -1,0 +1,45 @@
+With CSRF DISABLED in Spring (see Security Config)
+
+1 - Use some REST Client application to send http requests to the REST APIs
+Currently using Chrome extension called ARC (Advanced Rest Client)
+
+2 - Send a POST request to the login servlet, passing username, password and submit names
+
+http://localhost:8080/CaloriesSpring/login.jsp
+username=admin&password=123456&submit=Login
+
+3 - You are now authenticated and have a session. 
+Now you can send the REST API requests (GET, POST, PUT, etc)
+
+
+
+CSRF enabled in Spring (see Security Config)
+
+1 - Use some REST Client application to send http requests to the REST APIs
+Currently using Chrome extension called ARC (Advanced Rest Client)
+
+2 - Send a GET request to the application login page
+
+http://localhost:8080/CaloriesSpring/login.jsp
+
+Capture the value of the returned _csrf hidden form parameter
+
+3 - Send a POST request to the login servlet, passing username, password and submit names
+
+http://localhost:8080/CaloriesSpring/login.jsp
+username=admin&password=123456&submit=Login
+
+Also, a header needs to be added with the captured value
+
+X-CSRF-Token: <captured value>
+
+Example: 
+X-CSRF-Token: 32124a9e-55a8-48b7-a22a-843a09d259f5
+
+
+
+DOESN'T WORK FROM THIS POINT ON - THE CSRF VALUE CHANGES AFTER EVERY REQUEST
+
+4 - You are now authenticated and have a session. 
+Now you can send the REST API requests (GET, POST, PUT, etc)
+
