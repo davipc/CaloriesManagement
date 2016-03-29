@@ -1,0 +1,11 @@
+- Spring Security: authenticate using the REST API
+- create test data creation class
+- front: finish user admin page
+- front: create user creation page
+- front: finish meal management page
+  - integrate with rest apis
+  - add fields for filtering on date and time
+- front: filter pages based on role
+- rest services: add user check to services (authorization)
+- add REST unit tests
+- add REST integration tests

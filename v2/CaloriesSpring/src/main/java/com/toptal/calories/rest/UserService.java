@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,6 +35,7 @@ public class UserService extends ExceptionAwareService {
 	@Autowired
 	UserRepository repository; 
 
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or #id == principal.id")
 	@RequestMapping(value="{id}", method=RequestMethod.GET)
 	public @ResponseBody User getUser(@PathVariable int id, HttpServletResponse response) 
 	throws NotFoundException {
@@ -52,6 +54,7 @@ public class UserService extends ExceptionAwareService {
 		return user;
 	}
 	
+	@PreAuthorize ("hasRole('ROLE_ADMIN')")
 	@RequestMapping(method=RequestMethod.GET)
 	public @ResponseBody List<User> getAllUsers() 
 	throws NotFoundException {
@@ -61,12 +64,6 @@ public class UserService extends ExceptionAwareService {
 		
 		users = RestUtil.makeList(repository.findAll());
 
-		if (users == null || users.isEmpty()) {
-			String msg = "No users found";
-			logger.debug(msg);
-			throw new NotFoundException(msg);
-	    } 
-		
 		logger.debug("Users found: " + users.size());
 		
 		return users;
@@ -117,7 +114,8 @@ public class UserService extends ExceptionAwareService {
 	 * @param response 
 	 * @return
 	 */
-	@RequestMapping(value="{id}", method=RequestMethod.PUT)
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or #user.id == principal.id")
+	@RequestMapping(method=RequestMethod.PUT)
 	public @ResponseBody User updateUser(@RequestBody User user, HttpServletResponse response) 
 	throws NotFoundException {
 		logger.debug("Updating user " + user); 
@@ -177,6 +175,7 @@ public class UserService extends ExceptionAwareService {
 		return userUpdated;
 	}
 
+	@PreAuthorize ("hasRole('ROLE_ADMIN')")
 	@RequestMapping(value="{id}", method=RequestMethod.DELETE)
 	public void deleteUser(@PathVariable int id, HttpServletResponse response) 
 	throws NotFoundException {
@@ -196,6 +195,7 @@ public class UserService extends ExceptionAwareService {
 		logger.debug("Finished deleting user with ID " + id);
 	}
 	
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or #id == principal.id")
 	@RequestMapping(value="{userId}/meals", method=RequestMethod.GET)
 	public @ResponseBody List<Meal> getMealsFromUser(@PathVariable int userId, 
 		@RequestParam(required=false, name="fromDate") String fromDate, @RequestParam(required=false, name="toDate") String  toDate, 
@@ -237,11 +237,6 @@ public class UserService extends ExceptionAwareService {
 		logger.debug("User found for ID " + userId);
 		
 		mealsFromUser = user.getMeals();
-		if (mealsFromUser == null || mealsFromUser.isEmpty()) {
-			String msg = "No meals found for user with ID " + userId;
-			logger.debug(msg);
-			throw new NotFoundException(msg);
-	    } 
 
     	logger.debug("Meals found for user with ID " + userId + ": "  + mealsFromUser.size());
 		
@@ -256,12 +251,6 @@ public class UserService extends ExceptionAwareService {
 		
 		List<Meal> mealsFromUser = repository.findMealsInDateAndTimeRange(userId, fromDate, toDate, fromTime, toTime);
 		
-		if (mealsFromUser == null || mealsFromUser.isEmpty()) {
-			String msg = "No meals found " + formattedString;
-			logger.debug(msg);
-			throw new NotFoundException(msg);
-	    } 
-	    
 		logger.debug("Meals found " + formattedString + ": "  + mealsFromUser.size());
 
 		return mealsFromUser;

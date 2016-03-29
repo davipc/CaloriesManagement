@@ -1,0 +1,16 @@
+Dev Environment - Eclipse Mars (4.5.3)
+
+Compiler - JSE 8
+Web Container - Tomcat 8
+Packaging - Maven
+
+DB    - PostgreSQL 9.5
+
+JPA   - Spring Boot 1.3.3
+REST  - Spring Boot 1.3.3
+AAA   - Spring Security 1.3.3
+Front - AngularJS + JSP
+
+REST Unit Tests         - JAssert + Mockito
+REST Integration Tests  - RestAssured
+

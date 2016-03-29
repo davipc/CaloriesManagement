@@ -5,34 +5,28 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import com.toptal.calories.entity.RoleType;
+import com.toptal.calories.security.RESTBasedAuthenticationProvider;
+
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled=true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private static Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class); 
 	
-	//@Autowired
-    //private UserDetailsService userDetailsService;
+	@Autowired
+    private RESTBasedAuthenticationProvider authProvider;
 	
 	@Override
     protected void configure(HttpSecurity http) throws Exception {
         logger.debug("Setting up security...");
-//		http
-//            .authorizeRequests()
-//                .antMatchers("/", "/login*", "/hello.html", "/api/v2/**", "/font-awesome-4.2.0/**", "/css/**", "/fonts/**", "/images/**", "/jquery/**", "/js/**", "/less/**").permitAll()
-//                .anyRequest().authenticated()
-//                .and()
-//            .formLogin()
-//                .loginPage("/login.jsp").passwordParameter("password").usernameParameter("login")
-//                .permitAll()
-//                .and()
-//            .logout()
-//                .permitAll();
 
         // will disable this security constraint so functional tests are less troublesome
     	// CSRF increases security by tying a session ID to the logged user's physical address
@@ -42,15 +36,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     	http.csrf().disable();
     	
     	http.authorizeRequests()
-                .antMatchers("/api/v2/**", "/index.html").access("hasRole('ROLE_Default') or hasRole('ROLE_Manager') or hasRole('ROLE_Admin')")
-                .antMatchers("/userEdit.html").access ("hasRole('ROLE_Admin')")
-                .antMatchers("/calendarCalories.html").access ("hasRole('ROLE_Default') or hasRole('ROLE_Manager')")
+    			.antMatchers("/api/v2/auth").permitAll()
+    			.antMatchers("/api/v2/**", "/index.jsp").authenticated()
+                .antMatchers("/calendarCalories.jsp").access("hasRole('ROLE_" + RoleType.DEFAULT + "') or hasRole('ROLE_" + RoleType.MANAGER + "') or hasRole('ROLE_" + RoleType.ADMIN + "')")
+                .antMatchers("/userEdit.jsp").access ("hasRole('ROLE_" + RoleType.ADMIN + "')")
             .and()
 	            // ATTENTION: For the form login to work, the attribute names must be EXACTLY these: username=<username>, password=<password> AND Submit=Login
 	            // IF YOU WANT THE 2 FIRST TO BE DIFFERENT, YOU HAVE TO SET IT LIKE THIS:
 	            //.formLogin().loginPage("/login.jsp").usernameParameter("<other name>").passwordParameter("<other name>");
-            	// also, the defaultSuccessUrl is forcing the user to always go to the index page
-	            .formLogin().loginPage("/login.jsp").defaultSuccessUrl("/index.html", true)
+            	// on a side note, the defaultSuccessUrl is forcing the user to always go to the index page
+	            .formLogin().loginPage("/login.jsp").defaultSuccessUrl("/index.jsp", true)
             .and().exceptionHandling().accessDeniedPage("/notAuthorized.html")
             .and().logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/login.jsp");
         
@@ -61,19 +56,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         logger.debug("Configuring authentication...");
 
-        auth.inMemoryAuthentication().withUser("eu").password("123456").roles("Default");
-        auth.inMemoryAuthentication().withUser("manager").password("123456").roles("Manager");
-        auth.inMemoryAuthentication().withUser("admin").password("123456").roles("Admin");
+//        auth.inMemoryAuthentication().withUser("eu").password("123456").roles(RoleType.DEFAULT.name());
+//        auth.inMemoryAuthentication().withUser("manager").password("123456").roles(RoleType.MANAGER.name());
+//        auth.inMemoryAuthentication().withUser("admin").password("123456").roles(RoleType.ADMIN.name());
         
-//    	auth.inMemoryAuthentication()
-//                .withUser("user").password("password").roles("USER");
-    	
-//        auth.userDetailsService(userDetailsService);
+        auth.authenticationProvider(authProvider);
 
         
         logger.debug("Finished configuring authentication");
     }
-    
-    
-    
 }

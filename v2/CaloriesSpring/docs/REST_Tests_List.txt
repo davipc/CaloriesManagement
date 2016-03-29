@@ -16,7 +16,7 @@ User Get by ID:
 
 User Get All:
 
-- No users  (404)
+- No users  (200 + empty list)
 - 1 user found (200 + user)
 - multple users found (200 + users)
 
@@ -56,16 +56,16 @@ User Delete:
 
 User Get Meals:
 
-- Bad format fromDate (404)
-- Bad format toDate (404)
-- Bad format fromTime (404)
-- Bad format toTime (404)
+- Bad format fromDate (400)
+- Bad format toDate (400)
+- Bad format fromTime (400)
+- Bad format toTime (400)
 - No date/time - Bad ID (404)
-- No date/time - Good ID no Meals (404)
+- No date/time - Good ID no Meals (200 + empty list)
 - No date/time - Good ID with one meal (200 + meal)
 - No date/time - Good ID with multiple meals (200 + meals)
 - With all date/time - Bad ID (404)
-- With all date/time - Good ID no Meals (404)
+- With all date/time - Good ID no Meals (200 + empty list)
 - With all date/time - Good ID with one meal (200 + meal)
 - With all date/time - Good ID with multiple meals (200 + meals)
 - With fromDate only - Good ID with one meal (200 + meal)
@@ -76,7 +76,7 @@ User Get Meals:
 
 Roles Get All: 
 
-- No roles (404)
+- No roles (200 + empty list)
 - 1 role found (200 + role)
 - multple roles found (200 + roles)
 

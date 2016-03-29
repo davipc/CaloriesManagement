@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,23 +29,25 @@ public class MealService extends ExceptionAwareService {
 	@Autowired
 	MealRepository repository; 
 
+	// user can only fetch meals if special user or if meal is his
+	@PostAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or returnObject.user.id == principal.id")
 	@RequestMapping(value="{id}", method=RequestMethod.GET)
-	public @ResponseBody Meal getMeal(@PathVariable int mealId, HttpServletResponse response) 
+	public @ResponseBody Meal getMeal(@PathVariable int id, HttpServletResponse response) 
 	throws NotFoundException {
-		logger.debug("Looking for meal with ID " + mealId); 
+		logger.debug("Looking for meal with ID " + id); 
 		
-		Meal meal = repository.findOne(mealId);
-		
+		Meal meal = repository.findOne(id);
 		if (meal == null) {
-			String msg = "No meals found for ID " + mealId;
+			String msg = "No meals found for ID " + id;
 			logger.debug(msg);
 			throw new NotFoundException(msg);
 		}
 
-		logger.debug("Meal found for ID " + mealId);
+		logger.debug("Meal found for ID " + id);
 		return meal;
 	}
 
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or #meal.user.id == principal.id")
 	@RequestMapping(method=RequestMethod.POST)
 	public @ResponseBody Meal createMeal(@RequestBody Meal meal, HttpServletResponse response) 
 	throws NotFoundException {
@@ -85,6 +89,7 @@ public class MealService extends ExceptionAwareService {
 		return createdMeal;
 	}
 
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or #meal.user.id == principal.id")
 	@RequestMapping(method=RequestMethod.PUT)
 	public @ResponseBody Meal updateMeal(@RequestBody Meal meal, HttpServletResponse response) 
 	throws NotFoundException {
@@ -135,15 +140,16 @@ public class MealService extends ExceptionAwareService {
 		return updatedMeal;
 	}
 	
+	// TODO: change so entry is pulled before deletion, and method checks if authenticated user is owner of the meal or has super user role
 	@RequestMapping(value="{id}", method=RequestMethod.DELETE)
-	public void deleteMeal(@PathVariable int mealId, HttpServletResponse response) 
+	public void deleteMeal(@PathVariable int id, HttpServletResponse response) 
 	throws NotFoundException {
-		logger.debug("Deleting meal with ID " + mealId); 
+		logger.debug("Deleting meal with ID " + id); 
 		
 		try {
-			repository.delete(mealId);
+			repository.delete(id);
 		} catch (EmptyResultDataAccessException e) {
-			String msg = "Meal with ID " + mealId + " not found for delete";
+			String msg = "Meal with ID " + id + " not found for delete";
 			logger.debug(msg, e);
 			throw new NotFoundException(msg);
 		}
@@ -151,7 +157,7 @@ public class MealService extends ExceptionAwareService {
 		//set HTTP code to "204 NO CONTENT" since no content is returned
 	    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 		
-		logger.debug("Finished deleting meal with ID " + mealId);
+		logger.debug("Finished deleting meal with ID " + id);
 	}
 	
 }
