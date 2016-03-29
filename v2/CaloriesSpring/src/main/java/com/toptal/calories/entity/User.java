@@ -100,6 +100,20 @@ public class User extends BaseEntity {
 	public User() {
 	}
 
+	public User(String login, String password, String name, Gender gender, Integer dailyCalories, List<Role> roles,
+			List<Meal> meals, Timestamp creationDt) {
+		super();
+		this.login = login;
+		this.password = password;
+		this.name = name;
+		this.gender = gender;
+		this.dailyCalories = dailyCalories;
+		this.roles = roles;
+		this.meals = meals;
+		this.creationDt = creationDt;
+	}
+
+	
 	public Integer getId() {
 		return this.id;
 	}
@@ -226,6 +240,29 @@ public class User extends BaseEntity {
 		
 		return sb.toString();
 	}
+	
+	public String getJSON() {
+		StringBuilder builder = new StringBuilder("{");
+		builder.append("\"id\":").append(id).append(",");
+		builder.append("\"login\":\"").append(login).append("\",");
+		builder.append("\"password\":\"").append(password).append("\",");
+		builder.append("\"name\":\"").append(name).append("\",");
+		builder.append("\"gender\":\"").append(gender).append("\",");
+		builder.append("\"dailyCalories\":").append(dailyCalories).append(",");
+		builder.append("\"roles\":[");
+		
+		if (roles != null && roles.size() > 0) {
+			builder.append(roles.get(0).getJSON());
+			for (int i = 1; i < roles.size(); i++) {
+				builder.append(", ").append(roles.get(i).getJSON());
+			}
+		}
+		builder.append("], ");
+		builder.append("\"creationDt\":").append(creationDt != null ? creationDt.getTime() : 0).append("}");
+		
+		return builder.toString();
+	}
+	
 	
 	/**
 	 * Validates the object, returning a list of errors if any exist, or null otherwise

@@ -82,7 +82,7 @@ public class RESTBasedAuthenticationProvider implements AuthenticationProvider {
     	
     	try {
 			// TODO: the REST API URL would be set into a properties file in a real world application 
-    		endpoint = new URI("http://localhost:8080/CaloriesSpring" + RestPaths.AUTH);
+    		endpoint = new URI("http://localhost:8080/Calories" + RestPaths.AUTH);
 		} catch (URISyntaxException e) {
 			// nothing to do if the URL is wrong
 			logger.error("Bad Auth service URI", e);

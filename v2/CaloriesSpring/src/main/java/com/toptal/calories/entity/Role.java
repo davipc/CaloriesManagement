@@ -55,6 +55,11 @@ public class Role extends BaseEntity {
 	public Role() {
 	}
 
+	public Role(RoleType name) {
+		super();
+		this.name = name;
+	}
+
 	public Integer getId() {
 		return this.id;
 	}
@@ -129,5 +134,14 @@ public class Role extends BaseEntity {
 		sb.append("]");
 		
 		return sb.toString();
+	}
+	
+	public String getJSON() {
+		StringBuilder builder = new StringBuilder("{");
+		builder.append("\"id\":").append(id).append(",");
+		builder.append("\"name\":\"").append(name).append("\"");
+		builder.append("}");
+		
+		return builder.toString();
 	}
 }

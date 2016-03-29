@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>  
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>  
 
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
@@ -43,15 +43,23 @@
                         
                 		<div ng-controller="MealsCtrl">
                 		
+                		<sec:authorize access="hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')">
+                			<div ng-init="init(<sec:authentication property="principal.JSON" />, true)"></div>
+                		</sec:authorize>
+                		<sec:authorize access="!(hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN'))">
+                			<div ng-init="init(<sec:authentication property="principal.JSON" />, false)"></div>
+                		</sec:authorize>
+                		
                 		<br>
                 		<div>
+                		<sec:authorize access="hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')">
                 		<label for="userSelect"> Meals for User: </label>
-               			<select ng-change="getMealsForUser()"
+               			<select ng-change="userChanged()"
                			        ng-model="selectedUser" id="userSelect"
 						        ng-options="user as user.name for user in users"></select>
 						</div>
 						<br>
-						
+						</sec:authorize>						
 					  
 					  	<div id="calendarModal" class="modal fade">
 							<div class="modal-dialog">
@@ -106,4 +114,5 @@
     <!-- /#wrapper -->
 
 </body>
+
 </html>

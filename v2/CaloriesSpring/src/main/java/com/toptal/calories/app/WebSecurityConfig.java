@@ -56,10 +56,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         logger.debug("Configuring authentication...");
 
-//        auth.inMemoryAuthentication().withUser("eu").password("123456").roles(RoleType.DEFAULT.name());
-//        auth.inMemoryAuthentication().withUser("manager").password("123456").roles(RoleType.MANAGER.name());
-//        auth.inMemoryAuthentication().withUser("admin").password("123456").roles(RoleType.ADMIN.name());
-        
         auth.authenticationProvider(authProvider);
 
         

@@ -54,7 +54,7 @@ public class UserService extends ExceptionAwareService {
 		return user;
 	}
 	
-	@PreAuthorize ("hasRole('ROLE_ADMIN')")
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")
 	@RequestMapping(method=RequestMethod.GET)
 	public @ResponseBody List<User> getAllUsers() 
 	throws NotFoundException {
@@ -195,7 +195,7 @@ public class UserService extends ExceptionAwareService {
 		logger.debug("Finished deleting user with ID " + id);
 	}
 	
-	@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or #id == principal.id")
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or #userId == principal.id")
 	@RequestMapping(value="{userId}/meals", method=RequestMethod.GET)
 	public @ResponseBody List<Meal> getMealsFromUser(@PathVariable int userId, 
 		@RequestParam(required=false, name="fromDate") String fromDate, @RequestParam(required=false, name="toDate") String  toDate, 

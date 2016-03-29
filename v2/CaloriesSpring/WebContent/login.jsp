@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>  
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <html lang="en">
 
@@ -46,7 +46,7 @@ String bookmark = request.getParameter("bookmark");
                         <h3 class="panel-title">Please Sign In</h3>
                     </div>
                     <div class="panel-body">
-                        <form role="form" method="POST" action="/CaloriesSpring/login.jsp">
+                        <form role="form" method="POST" action="/Calories/login.jsp">
                             <fieldset>
                                 <div class="form-group">
                                     <input class="form-control" placeholder="Login" name="username"  autofocus>
