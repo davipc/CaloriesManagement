@@ -24,7 +24,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.toptal.calories.constants.RestPaths;
-import com.toptal.calories.entity.Gender;
 import com.toptal.calories.entity.Role;
 import com.toptal.calories.entity.User;
 
