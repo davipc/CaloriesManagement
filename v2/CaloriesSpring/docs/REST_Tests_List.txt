@@ -11,14 +11,22 @@ User Auth:
 
 User Get by ID:
 
+With Admin and Manager: all work
+With Default User: 403 if ID is not his own
+
 - Bad ID (404)
 - Good ID (200 + user)
 
+
 User Get All:
+
+With Admin and Manager: all work
+With Default User: 403 
 
 - No users  (200 + empty list)
 - 1 user found (200 + user)
 - multple users found (200 + users)
+
 
 User Create: 
 
@@ -36,6 +44,9 @@ User Create:
 
 User Update: 
 
+With Admin and Manager: all work
+With Default User: 403 if ID is not his own
+
 - Missing login (400)
 - Login size > 12 (400)
 - Missing name (400)
@@ -50,11 +61,17 @@ User Update:
 
 User Delete:
 
+With Admin: all work
+With Manager and Default User: 403
+
 - Bad ID (404)
 - Good ID with roles only (204)
 - Good ID with roles and meals(204)
 
 User Get Meals:
+
+With Admin and Manager: all work
+With Default User: 403 if ID is not his own
 
 - Bad format fromDate (400)
 - Bad format toDate (400)
@@ -76,14 +93,25 @@ User Get Meals:
 
 Roles Get All: 
 
+With Admin: all work
+With Manager and Default User: 403
+
 - No roles (200 + empty list)
 - 1 role found (200 + role)
 - multple roles found (200 + roles)
 
+
+
 Meal Get by ID:
+
+With Admin and Manager: all work
+With Default User: 403 if meal is not his own
 
 - Bad ID (404)
 - Good ID (200 + meal)
+
+With Admin and Manager: all work
+With Default User: 403 if meal is not his own
 
 Meal Create: 
 
@@ -101,6 +129,9 @@ Meal Create:
 
 Meal Update: 
 
+With Admin and Manager: all work
+With Default User: 403 if meal is not his own
+
 - Missing user (400)
 - Missing user.Id (400)
 - Missing meal date (400)
@@ -112,6 +143,9 @@ Meal Update:
 - Bad User ID (400)
 - User ID + date + time changed and already used by another meal (400)
 - user saved (200 + user)
+
+With Admin and Manager: all work
+With Default User: 403 if meal is not his own
 
 Meal Delete:
 

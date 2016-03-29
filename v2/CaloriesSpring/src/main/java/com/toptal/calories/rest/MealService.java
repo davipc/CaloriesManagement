@@ -89,6 +89,7 @@ public class MealService extends ExceptionAwareService {
 		return createdMeal;
 	}
 
+	// TODO: security: change so entry is pulled before update, and method checks if authenticated user is owner of the meal or has super user role
 	@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or #meal.user.id == principal.id")
 	@RequestMapping(method=RequestMethod.PUT)
 	public @ResponseBody Meal updateMeal(@RequestBody Meal meal, HttpServletResponse response) 
@@ -140,7 +141,7 @@ public class MealService extends ExceptionAwareService {
 		return updatedMeal;
 	}
 	
-	// TODO: change so entry is pulled before deletion, and method checks if authenticated user is owner of the meal or has super user role
+	// TODO: security: change so entry is pulled before deletion, and method checks if authenticated user is owner of the meal or has super user role
 	@RequestMapping(value="{id}", method=RequestMethod.DELETE)
 	public void deleteMeal(@PathVariable int id, HttpServletResponse response) 
 	throws NotFoundException {
