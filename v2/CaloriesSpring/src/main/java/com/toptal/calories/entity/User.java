@@ -236,7 +236,7 @@ public class User extends BaseEntity {
 		
 		sb.append(validateString(login, true, 12, "login"));
 		// no need to worry about password field size - hash function will always return 64 chars
-		sb.append(validateString(password, true, Integer.MAX_VALUE, "password"));
+		sb.append(validateString(password, false, Integer.MAX_VALUE, "password"));
 		sb.append(validateString(name, true, 80, "name"));
 		sb.append(validateForNull(gender, true, "gender"));
 		sb.append(validateForNull(dailyCalories, true, "daily calories"));

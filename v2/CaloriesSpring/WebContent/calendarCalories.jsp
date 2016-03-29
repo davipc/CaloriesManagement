@@ -1,5 +1,8 @@
-<!DOCTYPE html>
-<html>
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>  
+
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+
+<html lang="en">
 <head>
 <meta charset='utf-8' />
 
@@ -29,29 +32,7 @@
 
    <div id="wrapper">
 
-        <!-- Sidebar -->
-        <div id="sidebar-wrapper">
-            <ul class="sidebar-nav">
-                <li class="sidebar-brand">
-                    <a href="index.html">
-                        Meals Manager
-                    </a>
-                </li>
-                <li>
-                    <a href="calendarCalories.html">Meals Calendar</a>
-                </li>
-                <li>
-                    <a href="userEdit.html">Users</a>
-                </li>
-                <li>
-                <br/>
-                </li>
-                <li>
-	                <a href="logout">Logout</a>
-                </li>
-            </ul>
-        </div>
-        <!-- /#sidebar-wrapper -->
+        <%@ include file="Sidebar.jsp" %>
 
         <!-- Page Content -->
         <div id="page-content-wrapper">

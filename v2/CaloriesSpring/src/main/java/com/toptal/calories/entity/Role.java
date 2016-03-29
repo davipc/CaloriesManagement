@@ -2,6 +2,8 @@ package com.toptal.calories.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -32,7 +34,8 @@ public class Role extends BaseEntity {
 
 	// this field can never be modified by other entities updates
 	@Column(nullable=false, length=20, updatable=false)
-	private String name;
+	@Enumerated(EnumType.STRING)
+	private RoleType name;
 
 	/** not really needed
 	//bi-directional many-to-many association to User
@@ -60,11 +63,11 @@ public class Role extends BaseEntity {
 		this.id = id;
 	}
 
-	public String getName() {
+	public RoleType getName() {
 		return this.name;
 	}
 
-	public void setName(String name) {
+	public void setName(RoleType name) {
 		this.name = name;
 	}
 

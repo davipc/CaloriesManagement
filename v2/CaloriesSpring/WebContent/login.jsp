@@ -1,5 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1"  
-    pageEncoding="ISO-8859-1"%>  
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>  
 
 <html lang="en">
 
@@ -56,8 +55,6 @@ String bookmark = request.getParameter("bookmark");
                                     <input class="form-control" placeholder="Password" name="password" type="password" value="">
                                 </div>
                                 <input type="submit" class="btn btn-lg btn-success btn-block" value="Login"/>
-                                <!-- Change this to a button or input when using this as a form
-                                <a href="index.html" class="btn btn-lg btn-success btn-block">Login</a> -->
                             </fieldset>
                         </form>
                         

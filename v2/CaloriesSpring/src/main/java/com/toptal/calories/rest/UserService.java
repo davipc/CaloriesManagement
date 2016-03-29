@@ -111,7 +111,7 @@ public class UserService extends ExceptionAwareService {
 	 * @param response 
 	 * @return
 	 */
-	@RequestMapping(value="{id}", method=RequestMethod.PUT)
+	@RequestMapping(method=RequestMethod.PUT)
 	public @ResponseBody User updateUser(@RequestBody User user, HttpServletResponse response) 
 	throws NotFoundException {
 		logger.debug("Updating user " + user); 

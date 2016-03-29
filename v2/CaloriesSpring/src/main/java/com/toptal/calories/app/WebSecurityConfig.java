@@ -10,14 +10,17 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import com.toptal.calories.entity.RoleType;
+import com.toptal.calories.security.RESTBasedAuthenticationProvider;
+
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private static Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class); 
 	
-	//@Autowired
-    //private UserDetailsService userDetailsService;
+	@Autowired
+    private RESTBasedAuthenticationProvider authProvider;
 	
 	@Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -32,14 +35,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     	
     	http.authorizeRequests()
     			.antMatchers("/api/v2/auth").permitAll()
-                .antMatchers("/api/v2/**", "/index.html", "/calendarCalories.html").access("hasRole('ROLE_Default') or hasRole('ROLE_Manager') or hasRole('ROLE_Admin')")
-                .antMatchers("/userEdit.html").access ("hasRole('ROLE_Admin')")
+    			.antMatchers("/api/v2/**", "/index.jsp").authenticated()
+                .antMatchers("/calendarCalories.jsp").access("hasRole('ROLE_" + RoleType.DEFAULT + "') or hasRole('ROLE_" + RoleType.MANAGER + "') or hasRole('ROLE_" + RoleType.ADMIN + "')")
+                .antMatchers("/userEdit.jsp").access ("hasRole('ROLE_" + RoleType.ADMIN + "')")
             .and()
 	            // ATTENTION: For the form login to work, the attribute names must be EXACTLY these: username=<username>, password=<password> AND Submit=Login
 	            // IF YOU WANT THE 2 FIRST TO BE DIFFERENT, YOU HAVE TO SET IT LIKE THIS:
 	            //.formLogin().loginPage("/login.jsp").usernameParameter("<other name>").passwordParameter("<other name>");
             	// on a side note, the defaultSuccessUrl is forcing the user to always go to the index page
-	            .formLogin().loginPage("/login.jsp").defaultSuccessUrl("/index.html", true)
+	            .formLogin().loginPage("/login.jsp").defaultSuccessUrl("/index.jsp", true)
             .and().exceptionHandling().accessDeniedPage("/notAuthorized.html")
             .and().logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/login.jsp");
         
@@ -50,14 +54,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         logger.debug("Configuring authentication...");
 
-        auth.inMemoryAuthentication().withUser("eu").password("123456").roles("Default");
-        auth.inMemoryAuthentication().withUser("manager").password("123456").roles("Manager");
-        auth.inMemoryAuthentication().withUser("admin").password("123456").roles("Admin");
+//        auth.inMemoryAuthentication().withUser("eu").password("123456").roles(RoleType.DEFAULT.name());
+//        auth.inMemoryAuthentication().withUser("manager").password("123456").roles(RoleType.MANAGER.name());
+//        auth.inMemoryAuthentication().withUser("admin").password("123456").roles(RoleType.ADMIN.name());
         
-//    	auth.inMemoryAuthentication()
-//                .withUser("user").password("password").roles("USER");
-    	
-//        auth.userDetailsService(userDetailsService);
+        auth.authenticationProvider(authProvider);
 
         
         logger.debug("Finished configuring authentication");
