@@ -51,7 +51,7 @@ public class RESTBasedAuthenticationProvider implements AuthenticationProvider {
         	
         	List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList(getRoleNames(authenticatedUser));
         	
-        	result = new UsernamePasswordAuthenticationToken(name, password, authorities);
+        	result = new UsernamePasswordAuthenticationToken(authenticatedUser, password, authorities);
         }
 
         logger.debug("Finished authenticating user " + name);

@@ -41,7 +41,7 @@
                     <div class="col-lg-12">
 						<h1>Meals Manager</h1>
 						
-						Logged user: <sec:authentication property="principal" /> 
+						Logged user: <sec:authentication property="principal.login" /> with id <sec:authentication property="principal.id" />
                     </div>
                 </div>
             </div>

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,6 +35,7 @@ public class UserService extends ExceptionAwareService {
 	@Autowired
 	UserRepository repository; 
 
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or #id == principal.id")
 	@RequestMapping(value="{id}", method=RequestMethod.GET)
 	public @ResponseBody User getUser(@PathVariable int id, HttpServletResponse response) 
 	throws NotFoundException {
@@ -52,6 +54,7 @@ public class UserService extends ExceptionAwareService {
 		return user;
 	}
 	
+	@PreAuthorize ("hasRole('ROLE_ADMIN')")
 	@RequestMapping(method=RequestMethod.GET)
 	public @ResponseBody List<User> getAllUsers() 
 	throws NotFoundException {
@@ -111,6 +114,7 @@ public class UserService extends ExceptionAwareService {
 	 * @param response 
 	 * @return
 	 */
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or #user.id == principal.id")
 	@RequestMapping(method=RequestMethod.PUT)
 	public @ResponseBody User updateUser(@RequestBody User user, HttpServletResponse response) 
 	throws NotFoundException {
@@ -171,6 +175,7 @@ public class UserService extends ExceptionAwareService {
 		return userUpdated;
 	}
 
+	@PreAuthorize ("hasRole('ROLE_ADMIN')")
 	@RequestMapping(value="{id}", method=RequestMethod.DELETE)
 	public void deleteUser(@PathVariable int id, HttpServletResponse response) 
 	throws NotFoundException {
@@ -190,6 +195,7 @@ public class UserService extends ExceptionAwareService {
 		logger.debug("Finished deleting user with ID " + id);
 	}
 	
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or #id == principal.id")
 	@RequestMapping(value="{userId}/meals", method=RequestMethod.GET)
 	public @ResponseBody List<Meal> getMealsFromUser(@PathVariable int userId, 
 		@RequestParam(required=false, name="fromDate") String fromDate, @RequestParam(required=false, name="toDate") String  toDate, 
