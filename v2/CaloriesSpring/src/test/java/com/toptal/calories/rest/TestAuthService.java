@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.toptal.calories.builder.UserBuilder;
@@ -20,7 +19,6 @@ import com.toptal.calories.entity.Gender;
 import com.toptal.calories.entity.User;
 import com.toptal.calories.repository.UserRepository;
 import com.toptal.calories.rest.exceptions.UnauthorizedException;
-import com.toptal.calories.rest.util.EncryptionHelper;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestAuthService {
@@ -36,8 +34,9 @@ public class TestAuthService {
 	@Mock
 	private UserRepository userRepository;
 
-	@Spy
-	private EncryptionHelper encHelper = new EncryptionHelper();
+	// required since we are annotating authService to take mocks for the injected references 
+//	@Spy
+//	private EncryptionHelper encHelper = new EncryptionHelper();
 
 	
 	@Test
