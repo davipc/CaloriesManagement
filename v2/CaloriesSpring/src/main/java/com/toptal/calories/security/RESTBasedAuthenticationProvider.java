@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -31,6 +32,9 @@ import com.toptal.calories.entity.User;
 public class RESTBasedAuthenticationProvider implements AuthenticationProvider {
 
 	private static Logger logger = LoggerFactory.getLogger(RESTBasedAuthenticationProvider.class); 
+	
+	@Value("${com.toptal.rest.baseURI}")
+	private String endpointBase;
 	
     @Override
     public Authentication authenticate(Authentication authentication)
@@ -81,8 +85,10 @@ public class RESTBasedAuthenticationProvider implements AuthenticationProvider {
     	URI endpoint = null;
     	
     	try {
-			// TODO: the REST API URL would be set into a properties file in a real world application 
-    		endpoint = new URI("http://localhost:8080/Calories" + RestPaths.AUTH);
+    		
+    		logger.debug("Using configured endpoint base " + endpointBase);
+    		
+    		endpoint = new URI(endpointBase + RestPaths.AUTH);
 		} catch (URISyntaxException e) {
 			// nothing to do if the URL is wrong
 			logger.error("Bad Auth service URI", e);

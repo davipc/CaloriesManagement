@@ -1,7 +1,7 @@
 package com.toptal.calories.rest.exceptions;
 
 public class NotFoundException extends Exception {
-	private static final long serialVersionUID = 2469085713253143232L;
+	private static final long serialVersionUID = 2469085713253143231L;
 	
 	public NotFoundException() {
 	}

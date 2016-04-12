@@ -8,9 +8,8 @@ DB    - PostgreSQL 9.5
 
 JPA   - Spring Boot 1.3.3
 REST  - Spring Boot 1.3.3
-AAA   - Spring Security 1.3.3
+AAA   - Spring Boot Security 1.3.3
 Front - AngularJS + JSP
 
-REST Unit Tests         - JAssert + Mockito
-REST Integration Tests  - RestAssured
-
+REST Unit Tests         - JUnit + AssertJ + Mockito
+REST Integration Tests  - JUnit + RestAssured + AssertJ

@@ -25,8 +25,9 @@ With Default User: 403
 
 - No users  (200 + empty list)
 - 1 user found (200 + user)
-- multple users found (200 + users)
+- multiple users found (200 + users)
 
+Unauthenticated: all work
 
 User Create: 
 
@@ -93,12 +94,11 @@ With Default User: 403 if ID is not his own
 
 Roles Get All: 
 
-With Admin: all work
-With Manager and Default User: 403
+Unauthenticated: all work
 
 - No roles (200 + empty list)
 - 1 role found (200 + role)
-- multple roles found (200 + roles)
+- multiple roles found (200 + roles)
 
 
 
@@ -155,3 +155,5 @@ Meal Delete:
 
 Integration tests tutorial: http://g00glen00b.be/spring-boot-rest-assured/
 Unit tests tutorial: http://g00glen00b.be/unit-testing-mockito-assertj/
+
+http://www.petrikainulainen.net/programming/spring-framework/integration-testing-of-spring-mvc-applications-security/

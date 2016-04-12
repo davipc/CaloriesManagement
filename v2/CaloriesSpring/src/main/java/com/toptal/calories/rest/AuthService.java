@@ -1,9 +1,5 @@
 package com.toptal.calories.rest;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.toptal.calories.entity.User;
 import com.toptal.calories.repository.UserRepository;
 import com.toptal.calories.rest.exceptions.NotFoundException;
+import com.toptal.calories.rest.exceptions.UnauthorizedException;
 import com.toptal.calories.rest.util.EncryptionHelper;
 
 @Controller
@@ -27,10 +24,14 @@ public class AuthService extends ExceptionAwareService {
 	@Autowired
 	UserRepository repository; 
 
+	@Autowired
+	EncryptionHelper encHelper;
+	
 	@RequestMapping(method=RequestMethod.POST)
-	public @ResponseBody User authenticateUser(@RequestBody User user, HttpServletResponse response) 
-	throws NotFoundException {
-		logger.debug("Authenticating user " + user.getLogin()); 
+	//let HTTP code be "200 OK" since we are returning content
+	public @ResponseBody User authenticateUser(@RequestBody User user) 
+	throws NotFoundException, UnauthorizedException {
+		logger.debug("Authenticating user " + (user == null ? "null" : user.getLogin())); 
 
 		boolean authenticated = false;
 		User foundUser = null;
@@ -51,15 +52,11 @@ public class AuthService extends ExceptionAwareService {
 			// we could handle bad login and password cases differently (locking user after X attempts, etc), but since the service can be called 
 			// directly using any rest client (auth service is unsecured ) we will always return the more secure message: "Invalid login/password" 
 			logger.info("No users found with login " + user.getLogin());
-			try {
-				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid login/password");
-			} catch (IOException ioe) {
-				logger.warn("Error returning response error " + HttpServletResponse.SC_UNAUTHORIZED, ioe);
-			}
+			throw new UnauthorizedException("Invalid login/password");
 	    } else {
 
 			// compare passwords (provided vs stored)
-			String providedPwdEnc = new EncryptionHelper().encrypt(user.getPassword());
+			String providedPwdEnc = encHelper.encrypt(user.getPassword());
 			
 			authenticated = providedPwdEnc.equals(foundUser.getPassword());
 			
@@ -67,15 +64,7 @@ public class AuthService extends ExceptionAwareService {
 			// directly using any rest client (auth service is unsecured ) we will always return the more secure message: "Invalid login/password" 
 			if (!authenticated) {
 				logger.info("Bad password provided for user with login " + user.getLogin());
-				try {
-					response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid login/password");
-				} catch (IOException ioe) {
-					logger.warn("Error returning response error " + HttpServletResponse.SC_UNAUTHORIZED, ioe);
-				}
-				foundUser = null;
-			} else {
-				//set HTTP code to "200 OK" since we are returning content
-			    response.setStatus(HttpServletResponse.SC_OK);
+				throw new UnauthorizedException("Invalid login/password");
 			}
 		}
 		

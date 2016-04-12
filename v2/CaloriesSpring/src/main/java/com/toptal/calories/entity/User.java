@@ -186,6 +186,16 @@ public class User extends BaseEntity {
 		this.meals = meals;
 	}
 
+	public boolean hasRole(RoleType t) {
+		boolean result = false;
+		for (Role r: roles) {
+			if (r.getName().equals(t))
+				result = true;
+		}
+			
+		return result;
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		boolean result = false;
@@ -241,6 +251,7 @@ public class User extends BaseEntity {
 		return sb.toString();
 	}
 	
+	@JsonIgnore
 	public String getJSON() {
 		StringBuilder builder = new StringBuilder("{");
 		builder.append("\"id\":").append(id).append(",");

@@ -12,16 +12,14 @@
                 <li>
                     <a href="calendarCalories.jsp">Meals Calendar</a>
                 </li>
-				<sec:authorize access="hasRole('ROLE_ADMIN')">
                 <li>
-                    <a href="userEdit.jsp">Users</a>
+                    <a href="userEdit.jsp">User Management</a>
                 </li>
-                </sec:authorize>
                 <li>
                 <br/>
                 </li>
                 <li>
-	                <a href="logout">Logout</a>
+	                <a href="logout">Logout &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<sec:authentication property="principal.login" />)</a>
                 </li>
             </ul>
         </div>

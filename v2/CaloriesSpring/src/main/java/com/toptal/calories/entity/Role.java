@@ -13,6 +13,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 /**
  * The persistent class for the role database table.
@@ -136,6 +138,7 @@ public class Role extends BaseEntity {
 		return sb.toString();
 	}
 	
+	@JsonIgnore
 	public String getJSON() {
 		StringBuilder builder = new StringBuilder("{");
 		builder.append("\"id\":").append(id).append(",");

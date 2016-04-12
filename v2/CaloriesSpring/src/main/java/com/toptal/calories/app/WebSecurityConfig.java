@@ -11,6 +11,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import com.toptal.calories.constants.RestPaths;
+import com.toptal.calories.constants.WebResources;
 import com.toptal.calories.entity.RoleType;
 import com.toptal.calories.security.RESTBasedAuthenticationProvider;
 
@@ -24,6 +26,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
     private RESTBasedAuthenticationProvider authProvider;
 	
+	@Autowired
+	private RestAwareAccessDeniedHandler accessDeniedHandler;
+	
 	@Override
     protected void configure(HttpSecurity http) throws Exception {
         logger.debug("Setting up security...");
@@ -36,18 +41,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     	http.csrf().disable();
     	
     	http.authorizeRequests()
-    			.antMatchers("/api/v2/auth").permitAll()
-    			.antMatchers("/api/v2/**", "/index.jsp").authenticated()
-                .antMatchers("/calendarCalories.jsp").access("hasRole('ROLE_" + RoleType.DEFAULT + "') or hasRole('ROLE_" + RoleType.MANAGER + "') or hasRole('ROLE_" + RoleType.ADMIN + "')")
-                .antMatchers("/userEdit.jsp").access ("hasRole('ROLE_" + RoleType.ADMIN + "')")
+    			.antMatchers(WebResources.SIGNUP_PAGE, RestPaths.AUTH, RestPaths.ROLES + "/**", RestPaths.USERS + "/**", WebResources.ACCESS_DENIED_PAGE).permitAll()
+    			.antMatchers(RestPaths.REST_BASE_URI + "/**", WebResources.LANDING_PAGE).authenticated()
+                .antMatchers(WebResources.MEAL_MANAGE_PAGE, WebResources.USER_MANAGE_PAGE, WebResources.USER_SESSION_UPDATE_CHECK).access("hasRole('ROLE_" + RoleType.DEFAULT + "') or hasRole('ROLE_" + RoleType.MANAGER + "') or hasRole('ROLE_" + RoleType.ADMIN + "')")
             .and()
 	            // ATTENTION: For the form login to work, the attribute names must be EXACTLY these: username=<username>, password=<password> AND Submit=Login
 	            // IF YOU WANT THE 2 FIRST TO BE DIFFERENT, YOU HAVE TO SET IT LIKE THIS:
 	            //.formLogin().loginPage("/login.jsp").usernameParameter("<other name>").passwordParameter("<other name>");
             	// on a side note, the defaultSuccessUrl is forcing the user to always go to the index page
-	            .formLogin().loginPage("/login.jsp").defaultSuccessUrl("/index.jsp", true)
-            .and().exceptionHandling().accessDeniedPage("/notAuthorized.html")
-            .and().logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/login.jsp");
+	            .formLogin().loginPage(WebResources.LOGIN_PAGE).defaultSuccessUrl(WebResources.LANDING_PAGE, true)
+            //.and().exceptionHandling().accessDeniedPage("/notAuthorized.html")
+            .and().exceptionHandling().accessDeniedHandler(accessDeniedHandler)
+            .and().exceptionHandling().authenticationEntryPoint(new RestAwareAuthenticationEntryPoint(WebResources.LOGIN_PAGE))	            
+            .and().logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl(WebResources.LOGIN_PAGE);
         
 		logger.debug("Finished setting up security");
     }
@@ -57,7 +63,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         logger.debug("Configuring authentication...");
 
         auth.authenticationProvider(authProvider);
-
         
         logger.debug("Finished configuring authentication");
     }

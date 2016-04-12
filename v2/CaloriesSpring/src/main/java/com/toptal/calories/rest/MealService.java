@@ -1,23 +1,28 @@
 package com.toptal.calories.rest;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.toptal.calories.entity.Meal;
+import com.toptal.calories.entity.RoleType;
+import com.toptal.calories.entity.User;
 import com.toptal.calories.repository.MealRepository;
+import com.toptal.calories.rest.exceptions.ForbiddenException;
 import com.toptal.calories.rest.exceptions.NotFoundException;
 
 @Controller
@@ -30,9 +35,9 @@ public class MealService extends ExceptionAwareService {
 	MealRepository repository; 
 
 	// user can only fetch meals if special user or if meal is his
-	@PostAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or returnObject.user.id == principal.id")
+	@PostAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or isAuthenticated() and returnObject.user.id == principal.id")
 	@RequestMapping(value="{id}", method=RequestMethod.GET)
-	public @ResponseBody Meal getMeal(@PathVariable int id, HttpServletResponse response) 
+	public @ResponseBody Meal getMeal(@PathVariable int id) 
 	throws NotFoundException {
 		logger.debug("Looking for meal with ID " + id); 
 		
@@ -47,9 +52,10 @@ public class MealService extends ExceptionAwareService {
 		return meal;
 	}
 
-	@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or #meal.user.id == principal.id")
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or isAuthenticated() and #meal.user.id == principal.id")
 	@RequestMapping(method=RequestMethod.POST)
-	public @ResponseBody Meal createMeal(@RequestBody Meal meal, HttpServletResponse response) 
+	@ResponseStatus(HttpStatus.CREATED)
+	public @ResponseBody Meal createMeal(@RequestBody Meal meal) 
 	throws NotFoundException {
 		logger.debug("Persisting meal " + meal); 
 		
@@ -81,19 +87,17 @@ public class MealService extends ExceptionAwareService {
 			throw new NotFoundException(msg);
 	    } 
 
-		//set HTTP code to "201 Created"
-	    response.setStatus(HttpServletResponse.SC_CREATED);
-		
 		logger.debug("Finished persisting meal " + meal);
 		
 		return createdMeal;
 	}
 
-	// TODO: security: change so entry is pulled before update, and method checks if authenticated user is owner of the meal or has super user role
-	@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or #meal.user.id == principal.id")
+	// Not using @PreAuthorize, doing the check inside, as the caller could have altered the meal so its ID is his own
+	//@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or isAuthenticated() and #meal.user.id == principal.id")
 	@RequestMapping(method=RequestMethod.PUT)
-	public @ResponseBody Meal updateMeal(@RequestBody Meal meal, HttpServletResponse response) 
-	throws NotFoundException {
+	// let the service return 200 (OK) since it returns content
+	public @ResponseBody Meal updateMeal(@RequestBody Meal meal) 
+	throws NotFoundException, ForbiddenException {
 		logger.debug("Updating meal " + meal); 
 		
 		String validationResult = meal.validate();
@@ -108,17 +112,14 @@ public class MealService extends ExceptionAwareService {
 			throw new IllegalArgumentException(msg);
 		}
 		
-		Meal currentMeal = repository.findOne(meal.getId());
-
-		// if user is not in the DB return error (supposed to exist in an update operation)
-		if (currentMeal== null) {
-			String msg = "Meal with ID " + meal.getId() + " not found for update";
-			logger.error(msg);
-			throw new NotFoundException(msg);
-		} 		
+		// then confirm the user calling the API has the privileges to perform the update
+		if (!hasPrivilegeOn(meal.getId())) {
+			String msg = "No privileges to update meal with ID " + meal.getId();
+			logger.warn(msg);
+			throw new ForbiddenException(msg);
+		}
 		
 		Meal updatedMeal = null;
-		
 		try {
 			updatedMeal = repository.save(meal);
 		} catch (DataIntegrityViolationException e) {
@@ -133,20 +134,26 @@ public class MealService extends ExceptionAwareService {
 			throw new NotFoundException(msg);
 	    } 
 
-		//set HTTP code to "200 OK" since we are returning content
-	    response.setStatus(HttpServletResponse.SC_OK);
-		
 		logger.debug("Finished updating meal " + meal);
 
 		return updatedMeal;
 	}
 	
-	// TODO: security: change so entry is pulled before deletion, and method checks if authenticated user is owner of the meal or has super user role
 	@RequestMapping(value="{id}", method=RequestMethod.DELETE)
-	public void deleteMeal(@PathVariable int id, HttpServletResponse response) 
-	throws NotFoundException {
+	//set HTTP code to "204 NO CONTENT" since no content is returned
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void deleteMeal(@PathVariable int id) 
+	throws NotFoundException, ForbiddenException {
 		logger.debug("Deleting meal with ID " + id); 
+
+		// first confirm the user calling the API has the privileges to perform the deletion
+		if (!hasPrivilegeOn(id)) {
+			String msg = "No privileges to delete meal with ID " + id;
+			logger.warn(msg);
+			throw new ForbiddenException(msg);
+		}
 		
+		// then do the delete
 		try {
 			repository.delete(id);
 		} catch (EmptyResultDataAccessException e) {
@@ -155,10 +162,39 @@ public class MealService extends ExceptionAwareService {
 			throw new NotFoundException(msg);
 		}
 		
-		//set HTTP code to "204 NO CONTENT" since no content is returned
-	    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-		
 		logger.debug("Finished deleting meal with ID " + id);
+	}
+	
+	private boolean hasPrivilegeOn(int mealId) 
+	throws NotFoundException {
+		boolean result = true;
+		
+		Meal meal = repository.findOne(mealId);
+		if (meal == null) {
+			String msg = "Meal with ID " + mealId + " not found";
+			logger.debug(msg);
+			throw new NotFoundException(msg);
+		}
+		
+		User loggedUser = getLoggedUser();
+		// can only delete if user is authenticated and is admin or manager or is the meal owner
+		if (loggedUser == null || loggedUser.getId() == null || 
+				!(loggedUser.hasRole(RoleType.MANAGER) || loggedUser.hasRole(RoleType.ADMIN) || meal.getUser().getId().equals(loggedUser.getId()))) {
+
+			result = false;
+		}
+		
+		return result;
+	}
+	
+	private User getLoggedUser() {
+		User loggedUser = null;
+		Authentication loggedUserCreds = SecurityContextHolder.getContext().getAuthentication();
+		if (loggedUserCreds != null) {
+			loggedUser = (User) loggedUserCreds.getPrincipal();
+		}
+		
+		return loggedUser;
 	}
 	
 }

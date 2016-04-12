@@ -9,10 +9,11 @@
 		</layout>
 	</appender>
 
+	<!-- 
 	<appender name="TOPTAL-FILE" class="ch.qos.logback.core.FileAppender">
 		<file>hibernate.log</file>
 		<append>true</append>
-		<!-- deny all events with a level below INFO, that is TRACE and DEBUG -->
+		<!- deny all events with a level below INFO, that is TRACE and DEBUG ->
 	    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
 	      <level>INFO</level>
 	    </filter>		
@@ -24,7 +25,7 @@
 	<appender name="TOPTAL-SEVERE-FILE" class="ch.qos.logback.core.FileAppender">
 		<file>hibernate-severe.log</file>
 		<append>true</append>
-		<!-- deny all events with a level below ERROR -->
+		<!- deny all events with a level below ERROR ->
 	    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
 	      <level>ERROR</level>
 	    </filter>		
@@ -38,7 +39,8 @@
 		<appender-ref ref="TOPTAL-SEVERE-FILE" />
 		<appender-ref ref="STDOUT" />
 	</logger>
-
+	-->
+	
 	<logger name="com.toptal.calories" level="DEBUG" >
 		<appender-ref ref="STDOUT" />
 	</logger>

@@ -7,14 +7,12 @@ import javax.xml.bind.DatatypeConverter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+@Component
 public class EncryptionHelper 
 {
 	private static final Logger log = LoggerFactory.getLogger(EncryptionHelper.class);
-	
-	public EncryptionHelper() 
-	{
-	}
 	
 	public String encrypt(String text) 
 	{

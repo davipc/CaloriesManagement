@@ -9,6 +9,9 @@ import java.util.List;
 
 public class RestUtil {
 
+	public static String DATE_REGEX = "\\d{4}-\\d{2}-\\d{2}";
+	public static String TIME_REGEX = "\\d{2}:\\d{2}";
+	
 	public static DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd"); 
 	public static DateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm"); 
 
@@ -45,7 +48,11 @@ public class RestUtil {
 		if (inputDate == null) {
 			d = defaultDate;
 		} else {
+			if (!inputDate.matches(DATE_REGEX)) {
+				throw new IllegalArgumentException("Invalid format on input date: " + inputDate);
+			}
 			try {
+				 
 				d = DATE_FORMAT.parse(inputDate);
 			} catch (ParseException e) {
 				throw new IllegalArgumentException("Invalid format on input date: " + inputDate, e);
@@ -69,6 +76,10 @@ public class RestUtil {
 		if (inputTime == null) {
 			d = defaultTime;
 		} else {
+			if (!inputTime.matches(TIME_REGEX)) {
+				throw new IllegalArgumentException("Invalid format on input time: " + inputTime);
+			}
+			
 			try {
 				d = TIME_FORMAT.parse(inputTime);
 			} catch (ParseException e) {

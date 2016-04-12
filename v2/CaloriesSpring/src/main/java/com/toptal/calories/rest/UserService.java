@@ -3,13 +3,12 @@ package com.toptal.calories.rest;
 import java.util.Date;
 import java.util.List;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.toptal.calories.entity.Meal;
 import com.toptal.calories.entity.User;
@@ -35,9 +35,9 @@ public class UserService extends ExceptionAwareService {
 	@Autowired
 	UserRepository repository; 
 
-	@PreAuthorize ("hasRole('ROLE_ADMIN') or #id == principal.id")
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or isAuthenticated() and #id == principal.id")
 	@RequestMapping(value="{id}", method=RequestMethod.GET)
-	public @ResponseBody User getUser(@PathVariable int id, HttpServletResponse response) 
+	public @ResponseBody User getUser(@PathVariable int id) 
 	throws NotFoundException {
 		logger.debug("Looking for user with ID " + id); 
 		
@@ -70,13 +70,21 @@ public class UserService extends ExceptionAwareService {
 	}
 
 	@RequestMapping(method=RequestMethod.POST)
-	public @ResponseBody User createUser(@RequestBody User user, HttpServletResponse response) {
+	@ResponseStatus(HttpStatus.CREATED)
+	public @ResponseBody User createUser(@RequestBody User user) 
+	throws NotFoundException {
 		logger.debug("Persisting user " + user); 
 
+		User createdUser = null;
+		
 		String validationResult = user.validate();
 		if (validationResult != null) {
 			throw new IllegalArgumentException(validationResult);
 		}
+		
+		// need password for create
+		if (user.getPassword() == null)
+			throw new IllegalArgumentException("password is null");
 		
 		// also need to validate user ID - must be null
 		if (user.getId() != null) {
@@ -86,12 +94,11 @@ public class UserService extends ExceptionAwareService {
 		}
 		
 		// we will assume if password is provided it comes not encrypted
-		if (user.getPassword() != null)
-			user.setPassword(new EncryptionHelper().encrypt(user.getPassword()));
+		user.setPassword(new EncryptionHelper().encrypt(user.getPassword()));
 		
 		try {
 			// repository will set the ID to the input user
-			repository.save(user);
+			createdUser = repository.save(user);
 		} catch (DataIntegrityViolationException e) {
 			// login already used - that's the only constraint not validated
 			String msg = "Error creating user: login already used: " + user.getLogin();
@@ -99,12 +106,16 @@ public class UserService extends ExceptionAwareService {
 			throw new IllegalArgumentException(msg);
 		}
 		
-		response.setStatus(HttpServletResponse.SC_CREATED);
+		if (createdUser == null) {
+			String msg = "Error creating user " + user + ": no user returned from create";
+			logger.error(msg);
+		    throw new NotFoundException(msg);
+	    }		
 		
 	    logger.debug("Finished persisting " + user);
 		
 		// need to return so JSON will be returned (with the new ID)
-		return user;
+		return createdUser;
 	}
 	
 	/**
@@ -114,9 +125,10 @@ public class UserService extends ExceptionAwareService {
 	 * @param response 
 	 * @return
 	 */
-	@PreAuthorize ("hasRole('ROLE_ADMIN') or #user.id == principal.id")
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or isAuthenticated() and #user.id == principal.id")
 	@RequestMapping(method=RequestMethod.PUT)
-	public @ResponseBody User updateUser(@RequestBody User user, HttpServletResponse response) 
+	// let the service return 200 (OK) since it returns content
+	public @ResponseBody User updateUser(@RequestBody User user) 
 	throws NotFoundException {
 		logger.debug("Updating user " + user); 
 
@@ -167,9 +179,6 @@ public class UserService extends ExceptionAwareService {
 		    throw new NotFoundException(msg);
 	    }
 
-		//set HTTP code to "200 OK" since we are returning content
-	    response.setStatus(HttpServletResponse.SC_OK);
-	    
 		logger.debug("Finished updating " + user);
 		
 		return userUpdated;
@@ -177,7 +186,9 @@ public class UserService extends ExceptionAwareService {
 
 	@PreAuthorize ("hasRole('ROLE_ADMIN')")
 	@RequestMapping(value="{id}", method=RequestMethod.DELETE)
-	public void deleteUser(@PathVariable int id, HttpServletResponse response) 
+	//set HTTP code to "204 NO CONTENT" since no content is returned
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void deleteUser(@PathVariable int id) 
 	throws NotFoundException {
 		logger.debug("Deleting user with ID " + id); 
 		
@@ -189,25 +200,21 @@ public class UserService extends ExceptionAwareService {
 			throw new NotFoundException(msg);
 		}
 
-		//set HTTP code to "204 NO CONTENT" since no content is returned
-	    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-		
 		logger.debug("Finished deleting user with ID " + id);
 	}
 	
-	@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or #userId == principal.id")
+	@PreAuthorize ("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER') or isAuthenticated() and #userId == principal.id")
 	@RequestMapping(value="{userId}/meals", method=RequestMethod.GET)
 	public @ResponseBody List<Meal> getMealsFromUser(@PathVariable int userId, 
 		@RequestParam(required=false, name="fromDate") String fromDate, @RequestParam(required=false, name="toDate") String  toDate, 
-		@RequestParam(required=false, name="fromTime") String fromTime, @RequestParam(required=false, name="toTime") String toTime,
-		HttpServletResponse response) 
+		@RequestParam(required=false, name="fromTime") String fromTime, @RequestParam(required=false, name="toTime") String toTime) 
 	throws NotFoundException {
 		
 		List<Meal> mealsFromUser = null;
 		
 		// if no query parameters provided, just get all the user's meals 
 		if (fromDate == null && toDate == null && fromTime == null && toTime == null) {
-			mealsFromUser = getMealsFromUser(userId, response);	
+			mealsFromUser = getMealsFromUser(userId);	
 		} 
 		// otherwise, use the fields to perform a narrower query (more efficient on the DB than fetching all meals from user then filtering here)
 		else {
@@ -216,13 +223,13 @@ public class UserService extends ExceptionAwareService {
 			Date fromT = RestUtil.getTimeFromJSON(fromTime, RestUtil.DEFAULT_TIME_MIN);
 			Date toT = RestUtil.getTimeFromJSON(toTime, RestUtil.DEFAULT_TIME_MAX);
 			
-			mealsFromUser = getMealsFromUser(userId, fromD, toD, fromT, toT, response);
+			mealsFromUser = getMealsFromUser(userId, fromD, toD, fromT, toT);
 		}
 		
 		return mealsFromUser;
 	}
 	
-	private List<Meal> getMealsFromUser(int userId, HttpServletResponse response) 
+	private List<Meal> getMealsFromUser(int userId) 
 	throws NotFoundException {
 		logger.debug("Looking for meals from user " + userId); 
 		
@@ -238,12 +245,12 @@ public class UserService extends ExceptionAwareService {
 		
 		mealsFromUser = user.getMeals();
 
-    	logger.debug("Meals found for user with ID " + userId + ": "  + mealsFromUser.size());
+    	logger.debug("Meals found for user with ID " + userId + ": "  + (mealsFromUser != null ? mealsFromUser.size() : "null"));
 		
 		return mealsFromUser;
 	}
 	
-	private List<Meal> getMealsFromUser(int userId, Date fromDate, Date toDate, Date fromTime, Date toTime, HttpServletResponse response) 
+	private List<Meal> getMealsFromUser(int userId, Date fromDate, Date toDate, Date fromTime, Date toTime) 
 	throws NotFoundException {
 		String formattedString = String.format(" from user %s and in date range %tF to %tF and time range %tR to %tR", userId, fromDate, toDate, fromTime, toTime);
 
@@ -251,7 +258,7 @@ public class UserService extends ExceptionAwareService {
 		
 		List<Meal> mealsFromUser = repository.findMealsInDateAndTimeRange(userId, fromDate, toDate, fromTime, toTime);
 		
-		logger.debug("Meals found " + formattedString + ": "  + mealsFromUser.size());
+		logger.debug("Meals found " + formattedString + ": "  + (mealsFromUser != null ? mealsFromUser.size() : "null"));
 
 		return mealsFromUser;
 	}

@@ -40,10 +40,23 @@
                 <div class="row">
                     <div class="col-lg-12">
 						<h1>Meals Manager</h1>
-						
-						Logged user: <sec:authentication property="principal.login" /> with id <sec:authentication property="principal.id" />
-						<br/>
-						Whole info: <sec:authentication property="principal.JSON" />
+						<br/>  <br/>
+						<!-- <h5> -->
+						Welcome, <sec:authentication property="principal.name" />! 
+						<br/>  <br/>
+						On this application you will be able to manage and query your meals.<br/> 
+						Click on "Meals Calendar" to the left to add, remove, change or check your meals.
+						<sec:authorize access="!hasRole('ROLE_ADMIN')">
+						<br/>  <br/>
+						You can also manage your user information by clicking on "User Management"
+						</sec:authorize>	
+						<sec:authorize access="hasRole('ROLE_ADMIN')">
+						<br/>  <br/>
+						Since you are an administrator, you can also manage the application users by clicking on "User Management"
+						</sec:authorize>	
+						<br/>  <br/>
+						Click on "Meals Manager" at any time to come back to this page.		 
+						<!-- </h5> -->
                     </div>
                 </div>
             </div>

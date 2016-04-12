@@ -1,14 +1,27 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>CaloriesSpring</groupId>
+	<groupId>com.dcavalca</groupId>
 	<artifactId>CaloriesSpring</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot-starter.version>1.3.3.RELEASE</spring-boot-starter.version>
+		<unit-tests.skip>false</unit-tests.skip>
+		<integration-tests.skip>true</integration-tests.skip>
 	</properties>
+
+	<profiles>
+	  <profile>
+	    <id>integration</id>
+	    <properties>
+	      <unit-tests.skip>true</unit-tests.skip>
+	       <integration-tests.skip>false</integration-tests.skip>
+	    </properties>
+	  </profile>
+	</profiles>
+
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -43,10 +56,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-		</dependency>
 
 		<!-- Security -->
         <dependency>
@@ -73,6 +82,23 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 		</dependency>
+		
+		<!-- Tests -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+		  	<artifactId>assertj-core</artifactId>
+			<version>3.4.0</version>
+		</dependency>
+		<dependency>
+		  <groupId>com.jayway.restassured</groupId>
+		  <artifactId>rest-assured</artifactId>
+		  <version>2.9.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -107,6 +133,34 @@
 					<failOnMissingWebXml>false</failOnMissingWebXml>
 				</configuration>
 			</plugin>
+			
+			<plugin>
+			  <artifactId>maven-surefire-plugin</artifactId>
+  			  <configuration>
+			    <skipTests>${unit-tests.skip}</skipTests>
+				<includes>
+            		<include>**/Test*.java</include>
+        		</includes>
+			  </configuration>
+			</plugin>
+			<plugin>
+			  <artifactId>maven-failsafe-plugin</artifactId>
+			  <executions>
+			    <execution>
+			      <id>integration-test</id>
+			      <goals>
+			        <goal>integration-test</goal>
+			      </goals>
+			      <configuration>
+			        <skipTests>${integration-tests.skip}</skipTests>
+			        <includes>
+			          <include>**/IT*.class</include>
+			        </includes>
+			      </configuration>
+			    </execution>
+			  </executions>
+			</plugin>
+						
 		</plugins>
 	</build>
 </project>
